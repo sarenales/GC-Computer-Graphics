@@ -5,6 +5,7 @@
 //	http://www.ehu.eus/if
 //
 // to compile it: gcc dibujar-puntos.c -lGL -lGLU -lglut
+// I have made my own file to compile it ./compi
 //
 // This example shows :the use of GL_POINTS
 //
@@ -24,7 +25,7 @@ int dimx,dimy;
 int num_triangles;
 hiruki *triangulosptr;
 int indice = 0;
-float q,w,e;
+float tx,ty,tz;
 
 
 unsigned char * color_textura(float u, float v)
@@ -38,38 +39,26 @@ unsigned char * color_textura(float u, float v)
 static void establecer_orden_altura(punto *hptrptr, punto *lptrptr, punto *mptrptr){ 	// doble puntero?¿?¿?¿?¿
 	
 	punto aux;
-//	printf("ANTES DE ORDENADOR\n xh: %f | yh: %f  \n xl: %f | yl: %f \n xm: %f | ym: %f \n",
-//			(*hptrptr).x,(*hptrptr).y,(*lptrptr).x,(*lptrptr).y,(*mptrptr).x,(*mptrptr).y);
-	
 	
 	if((*hptrptr).y < (*lptrptr).y ){
-		
 		aux = *lptrptr;
-		//printf("h %f|l: %f \n",(*hptrptr).y , (*lptrptr).y );
 		*lptrptr = *hptrptr;
 		*hptrptr = aux;
-		//printf("h %f|l: %f \n",(*hptrptr).y , (*lptrptr).y );
 	}	
 	if((*lptrptr).y <(*mptrptr).y){
 		aux = *mptrptr;
-		//printf("m %f|l: %f \n",(*mptrptr).y , (*lptrptr).y );
 		*mptrptr = *lptrptr;
 		*lptrptr = aux;
-		//printf("m %f|l: %f \n",(*mptrptr).y , (*lptrptr).y );
 	}
 	if((*hptrptr).y < (*lptrptr).y){
 		aux = *lptrptr;
-		//printf("h %f|l: %f \n",(*hptrptr).y , (*lptrptr).y );
 		*lptrptr = *hptrptr;
 		*hptrptr = aux;
-		//printf("h %f|l: %f \n",(*hptrptr).y , (*lptrptr).y );
 	}
 	if((*lptrptr).y > (*mptrptr).y){
 		aux = *mptrptr;
-		//printf("m %f|l: %f \n",(*mptrptr).y , (*lptrptr).y );
 		*mptrptr = *lptrptr;
 		*lptrptr = aux;
-		//printf("m %f|l: %f \n",(*mptrptr).y , (*lptrptr).y );
 	}
 	
 	
@@ -80,19 +69,13 @@ static void establecer_orden_altura(punto *hptrptr, punto *lptrptr, punto *mptrp
 
 static void calcular_corte(int alt, punto *p1ptr, punto *p2ptr, punto *corteptr)
 {
-	// printf("alt: %f | p1: %f | p2: %f \n", alt, (*p1ptr).x, (*p2ptr).x);
+	corteptr->y = alt;
+	corteptr->x = ((p2ptr->x - p1ptr->x)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->x);
+	corteptr->u = ((p2ptr->u - p1ptr->u)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->u);
+	corteptr->v = ((p2ptr->v - p1ptr->v)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->v);
 	
-	float aux;
+//	printf("Punto de corte: x: %f, y:%f\n", (*corteptr).x,(*corteptr).y  );
 	
-	aux = (*p1ptr).x + ( alt - (*p1ptr).y) * (*p2ptr).x - (*p1ptr).x / ((*p2ptr).y - (*p1ptr).y);
-	
-	corteptr->x = aux;
-	
-	//printf("Punto de corte: x: %f, y:%f\n", (*corteptr).x,(*corteptr).y  );
-	
-	/* corteptr->y = y;
-	p2ptr->y - p1ptr->y -> y - p1ptr.y;
-	p2ptr.u-p1ptr.u-> corteptr.u - p1ptr.u; */
 }
 
 void calcularbaricentro(punto *p1,punto *p2,punto *p3,float i,float j,float *q,float *w,float *e){
@@ -107,8 +90,8 @@ void calcularbaricentro(punto *p1,punto *p2,punto *p3,float i,float j,float *q,f
 
 
 void calcularUV (punto *p1, punto *p2, punto *p3, float *u, float *v){
-	*u = q*(p1->u) + w*(p2->u) + e*(p3->u);
-	*v = q*(p1->v) + w*(p2->v) + e*(p3->v);
+	*u = tx*(p1->u) + ty*(p2->u) + tz*(p3->u);
+	*v = tx*(p1->v) + ty*(p2->v) + tz*(p3->v);
 }
 
 static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, punto *l)
@@ -119,6 +102,9 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 	float u, v;
 	punto aux;
 	
+	
+	// Ordeno los puntos de cortes
+	
 	if(corte1->x > corte2->x){
 		aux=*corte1;
 		*corte1=*corte2;
@@ -127,7 +113,7 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 	
 	for (j=(corte1->x);j<=(corte2->x);j++)
 	{
-		calcularbaricentro(h,m,l,j,corte2->y,&q,&w,&e); 
+		calcularbaricentro(h,m,l,j,corte2->y,&tx,&ty,&tz); 
 		calcularUV(h,m,l,&u,&v);
 		colorv = color_textura(u,v);
 			r = colorv[0];
@@ -162,29 +148,69 @@ static void dibujar_triangulo(hiruki *t)
 	int xm = mptr.x, ym = mptr.y;
 
 	// altura = yh - 1 ;
-	printf("xh: %d | yh: %d  \n xl: %d | yl: %d \n xm: %d | ym: %d \n",xh,yh,xl,yl,xm,ym);
-	// parte superior del triangulo
-	for(altura = yh; altura > ym; altura--)
-	{
-		//printf("vamos a calcular el corte\n");		
-		calcular_corte(altura, &hptr, &mptr, &c1);	// info corte 1
-		printf("punto de corte %f .\n", c1.x);
-		calcular_corte(altura, &hptr, &lptr, &c2);	// info corte 2
-		if(c1.x < c2.x)
-			dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
-		else
-			dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+	// printf("xh: %d | yh: %d  \n xl: %d | yl: %d \n xm: %d | ym: %d \n",xh,yh,xl,yl,xm,ym);
+	
+	// realizar un banco de pruebas completo!!
+	// controlar casos especiales !!!!!
+	
+	// Caso 1: si los puntos estan en la misma linea en horizontal (eje x) 
+ 	if(xh == xl && xh == xm){
+		
+		// Caso 2: si los puntos estan superpuestos
+		if(yh == yl && yl==ym){
+			printf("Caso (2) de puntos superpuestos.\n");
+		}
+		else{
+			printf("Caso (1) los puntos estan en la misma linea horizontal.\n");
+			glBegin(GL_POINTS);
+				glColor3ub(0,0,0);
+				glVertex2d(hptr.x, hptr.y);
+			glEnd();
+		}
 	}
-	// parte inferior
-	for(altura = ym; altura >= yl; altura--)
-	{
-		calcular_corte(altura, &mptr, &lptr, &c1);
-		calcular_corte(altura, &hptr, &lptr, &c2);
-		if(c1.x < c2.x)
-			dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
-		else
-			dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+	// Caso 3: estan en la misma linea en vertical (eje y)
+	else if(yh == yl && yl==ym){
+		printf("Caso (3) los puntos estan la misma linea vertial.\n");
 	}
+	
+	// Caso 4: si dos estan en la misma altura y el tercero no. 
+	//else if(){
+		
+	//} 
+	// Caso 5: si es oblicuo, una linea recta 
+	
+	// Caso 6: un punto que este fuera de la ventana, se debe de dibujar fuera. Pero debe de dibujar.
+	
+
+	
+	// Caso 7: triangulo con coordenadas diferentes
+	
+	else{
+		// parte superior del triangulo
+		for(altura = yh; altura > ym; altura--)
+		{
+			//printf("vamos a calcular el corte\n");		
+			calcular_corte(altura, &hptr, &mptr, &c1);	// info corte 1
+			//printf("punto de corte %f .\n", c1.x);
+			calcular_corte(altura, &hptr, &lptr, &c2);	// info corte 2
+			if(c1.x < c2.x)
+				dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+			else
+				dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+		}
+		// parte inferior
+		for(altura = ym; altura >= yl; altura--)
+		{
+			calcular_corte(altura, &mptr, &lptr, &c1);
+			calcular_corte(altura, &hptr, &lptr, &c2);
+			if(c1.x < c2.x)
+				dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+			else
+				dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
+		}
+	}
+	
+	
 }
 
 static void marraztu(void)
@@ -202,12 +228,12 @@ static void marraztu(void)
 	
 	glOrtho(0.0, 500.0, 0.0, 500.0,-250.0, 250.0);
 
-	// por ahora dibujamos todos los pixels de la ventana de 500x500 con el color que devuelve la función color_textura
 	// pero hay que llamar a la función que dibuja un triangulo con la textura mapeada:
 	
 	printf("vamos a dibujar el triangulo\n");
 	dibujar_triangulo(&triangulosptr[indice]);
-	
+
+	// por ahora dibujamos todos los pixels de la ventana de 500x500 con el color que devuelve la función color_textura	
 /*
 	for (i=0;i<500;i++)
 		for (j=0;j<500;j++)
