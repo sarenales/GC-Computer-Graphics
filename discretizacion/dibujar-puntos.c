@@ -68,7 +68,8 @@ static void calcular_corte(int alt, punto *p1ptr, punto *p2ptr, punto *corteptr)
 	corteptr->v = ((p2ptr->v - p1ptr->v)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->v);
 }
 
-void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,float *alfa,float *beta,float *gama){
+void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,float *alfa,float *beta,float *gama)
+{
 	
 	int x1,y1,x2,y2,x3,y3;
 	
@@ -87,7 +88,8 @@ void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,f
 }
 
 
-void calcularUV (punto *p1ptr, punto *p2ptr, punto *p3ptr, float *u, float *v){
+void calcularUV (punto *p1ptr, punto *p2ptr, punto *p3ptr, float *u, float *v)
+{
 	
 	float u1,v1,u2,v2,v3,u3;
 	
@@ -155,29 +157,28 @@ static void dibujar_triangulo(hiruki *t)
 
 	// CONTROL DE CASOS:
 	
-	
- 	if(xh == xl && xh == xm){
-		// Caso 1: si los puntos estan sobrepuestos
-		if(yh == yl && yl==ym){
-			printf("Caso (1) de puntos sobrepuestos.\n");
+	// Caso 1: si los puntos estan sobrepuestos
+	if(xh == xl && xh == xm && yh == yl && yl==ym){
+		printf("Caso (1) de puntos sobrepuestos.\n");
 			glBegin(GL_POINTS);
 				glColor3ub(0,0,0);
 				glVertex2d(hptr.x, hptr.y);
 			glEnd();
-		}
-		else{	
-			// Caso 2: si los puntos estan en la misma linea en vertical (eje y) 
-			printf("Caso (2) los puntos estan en la misma linea vertical.\n");
-			glBegin(GL_POINTS);
-				for (i=hptr.y; i>= lptr.y; i--){ 
-					glColor3ub(0,0,0);
-					glVertex2d(hptr.x, i);
-				}
-			glEnd();	
-		}
+	}
+	
+	// Caso 2: si los puntos estan en la misma linea en vertical (eje y) 
+ 	else if((xh == xl && xh == xm) && ((yh!=ym && ym!=yl) || (yh==ym && ym!=yl) || (yh!=ym && ym==yl))){
+		printf("Caso (2) los puntos estan en la misma linea vertical.\n");
+		glBegin(GL_POINTS);
+			for (i=hptr.y; i>= lptr.y; i--){ 
+				glColor3ub(0,0,0);
+				glVertex2d(hptr.x, i);
+			}
+		glEnd();	
+		
 	}
 	// Caso 3: estan en la misma linea en horizontal (eje x)
-	else if(yh == yl && yl==ym){
+	else if((yh == yl && yl==ym) && ((xh!=xm && xm!=xl) || (xm==xh && xh!=xl) || (xm==xl && xl!=xh) || (xh==xl && xl!=xm))){
 		printf("Caso (3) los puntos estan la misma linea horizontal.\n");
 		glBegin(GL_LINES);	
 			glColor3ub(0,0,0);
@@ -186,23 +187,22 @@ static void dibujar_triangulo(hiruki *t)
 		glEnd();
 	}
 	
-	// Caso 4: si dos estan en la misma altura y el tercero no. 
-	else if(xh==xm && xm==xl && yh!=yl){
-		printf("Caso (4) si dos estan en la misma altura y el tercero no. Caso vertical. \n");
-		glBegin(GL_POINTS);
-			for (i=hptr.y; i>= lptr.y; i--){ 
-				glColor3ub(0,0,0);
-				glVertex2d(hptr.x, i);
-			}
+	
+	else if ((xl!=xm && yl!=ym && xm==xh && ym==yh) || (xl==xm && yl==ym && xm!=xh && ym!=yh)){ 
+		printf("Caso (4) los puntos forman una linea oblicua.\n");
+		glBegin(GL_LINES);	
+		glColor3ub(0,0,0);
+		glVertex2f(hptr.x, hptr.y);
+		glVertex2f(lptr.x, lptr.y);
 		glEnd();
-	} 
+	}
 
 	
 	// Caso 5: triangulo con coordenadas diferentes
 	
 	else{
 		// parte superior del triangulo
-		printf("Caso (7) triangulo con coordenadas diferentes.\n");
+		printf("Caso (5) triangulo con coordenadas diferentes.\n");
 		for(altura = yh; altura > ym; altura--)
 		{		
 			calcular_corte(altura, &hptr, &mptr, &c1);	// info corte 1
