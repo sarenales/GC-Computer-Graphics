@@ -17,15 +17,13 @@
 #include "cargar-triangulo.h"
 
 
-// texturaren informazioa
-
 extern void load_ppm(char *file, unsigned char **bufferptr, int *dimxptr, int * dimyptr);
 unsigned char *bufferra;
 int dimx,dimy;
 int num_triangles;
 hiruki *triangulosptr;
 int indice = 0;
-float tx,ty,tz;
+float alfa,beta,gama;
 
 
 unsigned char * color_textura(float u, float v)
@@ -36,35 +34,30 @@ unsigned char * color_textura(float u, float v)
 	return(bufferra + ((desplx*dimx)+desply)*3 );
 }
 
-static void establecer_orden_altura(punto *hptrptr, punto *lptrptr, punto *mptrptr){ 	// doble puntero?¿?¿?¿?¿
-	
+static void establecer_orden_altura(punto *hptr, punto *lptr, punto *mptr)
+{ 		
 	punto aux;
 	
-	if((*hptrptr).y < (*lptrptr).y ){
-		aux = *lptrptr;
-		*lptrptr = *hptrptr;
-		*hptrptr = aux;
+	if((*hptr).y < (*lptr).y ){
+		aux = *lptr;
+		*lptr = *hptr;
+		*hptr = aux;
 	}	
-	if((*lptrptr).y <(*mptrptr).y){
-		aux = *mptrptr;
-		*mptrptr = *lptrptr;
-		*lptrptr = aux;
+	if((*lptr).y <(*mptr).y){
+		aux = *mptr;
+		*mptr = *lptr;
+		*lptr = aux;
 	}
-	if((*hptrptr).y < (*lptrptr).y){
-		aux = *lptrptr;
-		*lptrptr = *hptrptr;
-		*hptrptr = aux;
+	if((*hptr).y < (*lptr).y){
+		aux = *lptr;
+		*lptr = *hptr;
+		*hptr = aux;
 	}
-	if((*lptrptr).y > (*mptrptr).y){
-		aux = *mptrptr;
-		*mptrptr = *lptrptr;
-		*lptrptr = aux;
+	if((*lptr).y > (*mptr).y){
+		aux = *mptr;
+		*mptr = *lptr;
+		*lptr = aux;
 	}
-	
-	
-	
-//	printf("ORDENADO\n xh: %f | yh: %f  \n xl: %f | yl: %f \n xm: %f | ym: %f \n",
-//			(*hptrptr).x,(*hptrptr).y,(*lptrptr).x,(*lptrptr).y,(*mptrptr).x,(*mptrptr).y);
 }
 
 static void calcular_corte(int alt, punto *p1ptr, punto *p2ptr, punto *corteptr)
@@ -73,25 +66,37 @@ static void calcular_corte(int alt, punto *p1ptr, punto *p2ptr, punto *corteptr)
 	corteptr->x = ((p2ptr->x - p1ptr->x)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->x);
 	corteptr->u = ((p2ptr->u - p1ptr->u)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->u);
 	corteptr->v = ((p2ptr->v - p1ptr->v)/(p2ptr->y - p1ptr->y))*(alt - p1ptr->y)+(p1ptr->v);
-	
-//	printf("Punto de corte: x: %f, y:%f\n", (*corteptr).x,(*corteptr).y  );
-	
 }
 
-void calcularbaricentro(punto *p1,punto *p2,punto *p3,float i,float j,float *q,float *w,float *e){
+void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,float *alfa,float *beta,float *gama){
+	
+	int x1,y1,x2,y2,x3,y3;
+	
+	x1 = p1ptr->x; y1 = p1ptr->y;
+	x2 = p2ptr->x; y2 = p2ptr->y;
+	x3 = p3ptr->x; y3 = p3ptr->y;
 
-	*q =((p2->x)*(p3->y)+(p3->x)*j+i*(p2->y)-(p2->x)*j-i*(p3->y)-(p3->x)*(p2->y))/((p2->x)*(p3->y)+(p3->x)*(p1->y)+(p1->x)*(p2->y)-(p2->x)*(p1->y)-(p1->x)*(p3->y)-(p3->x)*(p2->y));
-
-	*w =(i*(p3->y)+(p3->x)*(p1->y)+(p1->x)*j-i*(p1->y)-(p1->x)*(p3->y)-(p3->x)*j)/((p2->x)*(p3->y)+(p3->x)*(p1->y)+(p1->x)*(p2->y)-(p2->x)*(p1->y)-(p1->x)*(p3->y)-(p3->x)*(p2->y));
-
-	*e =((p2->x)*j+i*(p1->y)+(p1->x)*(p2->y)-(p2->x)*(p1->y)-(p1->x)*j-i*(p2->y))/((p2->x)*(p3->y)+(p3->x)*(p1->y)+(p1->x)*(p2->y)-(p2->x)*(p1->y)-(p1->x)*(p3->y)-(p3->x)*(p2->y));
-
+	int d;
+	
+	
+	d = x1*y2+x2*y3+x3*y1-x1*y3-x2*y1-x3*y2;
+	
+	*alfa = ((x3-x2)*j+(y2-y3)*i+x3*y3-x3*y2)/d;
+	*beta = ((x1-x3)*j+(y3-y1)*i+x3*y1-x1*y3)/d;
+	*gama = ((x2-x1)*j+(y1-y2)*i+x1*y2-x2*y1)/d;
 }
 
 
-void calcularUV (punto *p1, punto *p2, punto *p3, float *u, float *v){
-	*u = tx*(p1->u) + ty*(p2->u) + tz*(p3->u);
-	*v = tx*(p1->v) + ty*(p2->v) + tz*(p3->v);
+void calcularUV (punto *p1ptr, punto *p2ptr, punto *p3ptr, float *u, float *v){
+	
+	float u1,v1,u2,v2,v3,u3;
+	
+	u1 = p1ptr->u; v1 = p1ptr->v;
+	u2 = p2ptr->u; v2 = p2ptr->v;
+	u3 = p3ptr->u; v3 = p3ptr->v;
+	
+	*u = alfa*u1 + beta*u2 + gama*u3;
+	*v = alfa*v1 + beta*v2 + gama*v3;
 }
 
 static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, punto *l)
@@ -103,7 +108,7 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 	punto aux;
 	
 	
-	// Ordeno los puntos de cortes
+	// Ordeno los puntos de cortes 
 	
 	if(corte1->x > corte2->x){
 		aux=*corte1;
@@ -113,7 +118,8 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 	
 	for (j=(corte1->x);j<=(corte2->x);j++)
 	{
-		calcularbaricentro(h,m,l,j,corte2->y,&tx,&ty,&tz); 
+		// calculamos las coordenadas baricentricas y asi poder hallar el color de la textura
+		calcularbaricentro(h,m,l,j,corte2->y,&alfa,&beta,&gama); 
 		calcularUV(h,m,l,&u,&v);
 		colorv = color_textura(u,v);
 			r = colorv[0];
@@ -130,68 +136,76 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 
 static void dibujar_triangulo(hiruki *t)
 {
-	punto hptr, mptr, lptr; 	// *hptr, *mptr, *lptr;
+	punto hptr, mptr, lptr;
 	punto c1, c2;
 	int altura;
+	int i;
 	
 	hptr = t->p1; 
 	mptr = t->p2; 
 	lptr = t->p3;
 	
 	// Se ordena los puntos respecto hptr y demanera descendente. hptr (high) >> mptr (medium) >> lptr (low)
-	printf("vamos a ordenar.\n");
 	establecer_orden_altura(&hptr, &lptr, &mptr);
-	printf("establecido el orden.\n");
 
 	int xh = hptr.x, yh = hptr.y;
 	int xl = lptr.x, yl = lptr.y;
 	int xm = mptr.x, ym = mptr.y;
 
-	// altura = yh - 1 ;
-	// printf("xh: %d | yh: %d  \n xl: %d | yl: %d \n xm: %d | ym: %d \n",xh,yh,xl,yl,xm,ym);
+
+	// CONTROL DE CASOS:
 	
-	// realizar un banco de pruebas completo!!
-	// controlar casos especiales !!!!!
 	
-	// Caso 1: si los puntos estan en la misma linea en horizontal (eje x) 
  	if(xh == xl && xh == xm){
-		
-		// Caso 2: si los puntos estan superpuestos
+		// Caso 1: si los puntos estan sobrepuestos
 		if(yh == yl && yl==ym){
-			printf("Caso (2) de puntos superpuestos.\n");
-		}
-		else{
-			printf("Caso (1) los puntos estan en la misma linea horizontal.\n");
+			printf("Caso (1) de puntos sobrepuestos.\n");
 			glBegin(GL_POINTS);
 				glColor3ub(0,0,0);
 				glVertex2d(hptr.x, hptr.y);
 			glEnd();
 		}
+		else{	
+			// Caso 2: si los puntos estan en la misma linea en vertical (eje y) 
+			printf("Caso (2) los puntos estan en la misma linea vertical.\n");
+			glBegin(GL_POINTS);
+				for (i=hptr.y; i>= lptr.y; i--){ 
+					glColor3ub(0,0,0);
+					glVertex2d(hptr.x, i);
+				}
+			glEnd();	
+		}
 	}
-	// Caso 3: estan en la misma linea en vertical (eje y)
+	// Caso 3: estan en la misma linea en horizontal (eje x)
 	else if(yh == yl && yl==ym){
-		printf("Caso (3) los puntos estan la misma linea vertial.\n");
+		printf("Caso (3) los puntos estan la misma linea horizontal.\n");
+		glBegin(GL_LINES);	
+			glColor3ub(0,0,0);
+			glVertex2f(hptr.x, hptr.y);
+			glVertex2f(lptr.x, lptr.y);
+		glEnd();
 	}
 	
 	// Caso 4: si dos estan en la misma altura y el tercero no. 
-	//else if(){
-		
-	//} 
-	// Caso 5: si es oblicuo, una linea recta 
-	
-	// Caso 6: un punto que este fuera de la ventana, se debe de dibujar fuera. Pero debe de dibujar.
-	
+	else if(xh==xm && xm==xl && yh!=yl){
+		printf("Caso (4) si dos estan en la misma altura y el tercero no. Caso vertical. \n");
+		glBegin(GL_POINTS);
+			for (i=hptr.y; i>= lptr.y; i--){ 
+				glColor3ub(0,0,0);
+				glVertex2d(hptr.x, i);
+			}
+		glEnd();
+	} 
 
 	
-	// Caso 7: triangulo con coordenadas diferentes
+	// Caso 5: triangulo con coordenadas diferentes
 	
 	else{
 		// parte superior del triangulo
+		printf("Caso (7) triangulo con coordenadas diferentes.\n");
 		for(altura = yh; altura > ym; altura--)
-		{
-			//printf("vamos a calcular el corte\n");		
+		{		
 			calcular_corte(altura, &hptr, &mptr, &c1);	// info corte 1
-			//printf("punto de corte %f .\n", c1.x);
 			calcular_corte(altura, &hptr, &lptr, &c2);	// info corte 2
 			if(c1.x < c2.x)
 				dibujar_seccion(&c1, &c2, &hptr, &mptr, &lptr);
@@ -215,11 +229,6 @@ static void dibujar_triangulo(hiruki *t)
 
 static void marraztu(void)
 {
-/*	float u,v;
-	float i,j;
-	unsigned char* colorv;
-	unsigned char r,g,b;
-*/
 	// borramos lo que haya...
 	glClear( GL_COLOR_BUFFER_BIT );
 
@@ -229,27 +238,8 @@ static void marraztu(void)
 	glOrtho(0.0, 500.0, 0.0, 500.0,-250.0, 250.0);
 
 	// pero hay que llamar a la función que dibuja un triangulo con la textura mapeada:
-	
-	printf("vamos a dibujar el triangulo\n");
+	printf("vamos a dibujar el triangulo numero (%d)\n", indice);
 	dibujar_triangulo(&triangulosptr[indice]);
-
-	// por ahora dibujamos todos los pixels de la ventana de 500x500 con el color que devuelve la función color_textura	
-/*
-	for (i=0;i<500;i++)
-		for (j=0;j<500;j++)
-			{
-			u = i/500.0;
-			v = j/500.0;
-			colorv=  color_textura(u, v); // si esta función es correcta se ve la foto en la ventana
-			r= colorv[0];
-			g=colorv[1];
-			b=colorv[2];     
-		glBegin( GL_POINTS );
-		glColor3ub(r,g,b);
-		glVertex3f(i,j,0.);	// por ahora 2 dimensiones
-		glEnd();
-		}
-*/
 	glFlush();
 }
 
@@ -265,6 +255,7 @@ static void teklatua (unsigned char key, int x, int y)
 			if(indice < num_triangles-1){
 				indice++;
 			}else{
+				printf ("Ya hemos leido todo el fichero, empezamos de nuevo.\n");
 				indice = 0;
 			}
 			marraztu;
@@ -299,7 +290,7 @@ int main(int argc, char** argv)
 	glutKeyboardFunc( teklatua );
 
 	/* we put the information of the texture in the buffer pointed by bufferra. The dimensions of the texture are loaded into dimx and dimy */ 
-    load_ppm("silvia.ppm", &bufferra, &dimx, &dimy);
+    load_ppm("minisilvia.ppm", &bufferra, &dimx, &dimy);
 	
     cargar_triangulos(&num_triangles, &triangulosptr);
 	
