@@ -28,10 +28,15 @@ float alfa,beta,gama;
 
 unsigned char * color_textura(float u, float v)
 {
-	int desplx = dimx * u;		// columna	
-	int desply = dimy *(1-v);	// fila
+	// int desplx = dimx * u;		// columna	
+	// int desply = dimy *(1-v);	// fila
 	
-	return(bufferra + ((desplx*dimx)+desply)*3 );
+	// return(bufferra + ((desplx*dimx)+desply)*3 );
+	
+	int fila = dimy * (1-v);
+	int columna = dimx * u;
+	int total = (fila * dimx  + columna) * 3;
+	return(bufferra + total);
 }
 
 static void establecer_orden_altura(punto *hptr, punto *lptr, punto *mptr)
@@ -77,14 +82,12 @@ void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,f
 	x2 = p2ptr->x; y2 = p2ptr->y;
 	x3 = p3ptr->x; y3 = p3ptr->y;
 
-	int d;
-	
-	
-	d = x1*y2+x2*y3+x3*y1-x1*y3-x2*y1-x3*y2;
+	int d = (x1*y2)+(x2*y3)+(x3*y1)-(x1*y3)-(x2*y1)-(x3*y2);
 	
 	*alfa = ((x3-x2)*j+(y2-y3)*i+x3*y3-x3*y2)/d;
 	*beta = ((x1-x3)*j+(y3-y1)*i+x3*y1-x1*y3)/d;
 	*gama = ((x2-x1)*j+(y1-y2)*i+x1*y2-x2*y1)/d;
+	//*beta = 1.0 - *beta - *alfa;
 }
 
 
@@ -96,9 +99,11 @@ void calcularUV (punto *p1ptr, punto *p2ptr, punto *p3ptr, float *u, float *v)
 	u1 = p1ptr->u; v1 = p1ptr->v;
 	u2 = p2ptr->u; v2 = p2ptr->v;
 	u3 = p3ptr->u; v3 = p3ptr->v;
+	//if(gama>=0){
+		*u = alfa*u1 + beta*u2 + gama*u3;
+		*v = alfa*v1 + beta*v2 + gama*v3;
+	//}
 	
-	*u = alfa*u1 + beta*u2 + gama*u3;
-	*v = alfa*v1 + beta*v2 + gama*v3;
 }
 
 static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, punto *l)
@@ -133,6 +138,8 @@ static void dibujar_seccion(punto *corte1, punto *corte2, punto *h, punto *m, pu
 			glVertex3f(j,corte1->y,0.);		// Dos dimensiones
 		glEnd();
 	}
+	
+
 
 }
 
@@ -142,6 +149,8 @@ static void dibujar_triangulo(hiruki *t)
 	punto c1, c2;
 	int altura;
 	int i;
+	int a, b, c, d, m;
+	
 	
 	hptr = t->p1; 
 	mptr = t->p2; 
@@ -153,13 +162,19 @@ static void dibujar_triangulo(hiruki *t)
 	int xh = hptr.x, yh = hptr.y;
 	int xl = lptr.x, yl = lptr.y;
 	int xm = mptr.x, ym = mptr.y;
-
+	
+	a = xm-xl;
+	b = ym-yl;
+	c = xh-xl;
+	d = yh-yl;
+	
+	m=(a*d)-(b*c);
 
 	// CONTROL DE CASOS:
 	
-	// Caso 1: si los puntos estan sobrepuestos
+	// Caso 1: si los puntos estan superpuestos 
 	if(xh == xl && xh == xm && yh == yl && yl==ym){
-		printf("Caso (1) de puntos sobrepuestos.\n");
+		printf("Caso (1) de puntos superpuestos .\n");
 			glBegin(GL_POINTS);
 				glColor3ub(0,0,0);
 				glVertex2d(hptr.x, hptr.y);
@@ -187,22 +202,31 @@ static void dibujar_triangulo(hiruki *t)
 		glEnd();
 	}
 	
-	
+	// Caso 4:  linea oblicua (uno de los puntos coinciden)
 	else if ((xl!=xm && yl!=ym && xm==xh && ym==yh) || (xl==xm && yl==ym && xm!=xh && ym!=yh)){ 
-		printf("Caso (4) los puntos forman una linea oblicua.\n");
+		printf("Caso (4) linea oblicua (uno de los puntos coinciden)\n");
 		glBegin(GL_LINES);	
 		glColor3ub(0,0,0);
 		glVertex2f(hptr.x, hptr.y);
 		glVertex2f(lptr.x, lptr.y);
 		glEnd();
 	}
-
 	
-	// Caso 5: triangulo con coordenadas diferentes
+	// Caso 5: linea oblicua (puntos alineados)
+	else if(m==0){
+		printf("Caso (5) linea oblicua(puntos alineados)\n");
+		glBegin(GL_LINES);	
+		glColor3ub(0,0,0);
+		glVertex2f(hptr.x, hptr.y);
+		glVertex2f(lptr.x, lptr.y);
+		glEnd();
+	}
 	
+	
+	// Caso 6: triangulo con coordenadas diferentes
 	else{
 		// parte superior del triangulo
-		printf("Caso (5) triangulo con coordenadas diferentes.\n");
+		printf("Caso (6) triangulo con coordenadas diferentes.\n");
 		for(altura = yh; altura > ym; altura--)
 		{		
 			calcular_corte(altura, &hptr, &mptr, &c1);	// info corte 1
@@ -290,7 +314,7 @@ int main(int argc, char** argv)
 	glutKeyboardFunc( teklatua );
 
 	/* we put the information of the texture in the buffer pointed by bufferra. The dimensions of the texture are loaded into dimx and dimy */ 
-    load_ppm("minisilvia.ppm", &bufferra, &dimx, &dimy);
+    load_ppm("foto.ppm", &bufferra, &dimx, &dimy);
 	
     cargar_triangulos(&num_triangles, &triangulosptr);
 	
