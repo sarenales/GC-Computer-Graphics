@@ -33,9 +33,10 @@ unsigned char * color_textura(float u, float v)
 	
 	// return(bufferra + ((desplx*dimx)+desply)*3 );
 	
-	int fila = dimy * (1-v);
-	int columna = dimx * u;
-	int total = (fila * dimx  + columna) * 3;
+	int fila = (dimy * (1-v));
+	printf("fila: \n", fila);
+	int columna = (dimx * u);
+	int total = ((fila * dimx  + columna) * 3);
 	return(bufferra + total);
 }
 
@@ -87,7 +88,6 @@ void calcularbaricentro(punto *p1ptr,punto *p2ptr,punto *p3ptr,float i,float j,f
 	*alfa = ((x3-x2)*j+(y2-y3)*i+x3*y3-x3*y2)/d;
 	*beta = ((x1-x3)*j+(y3-y1)*i+x3*y1-x1*y3)/d;
 	*gama = ((x2-x1)*j+(y1-y2)*i+x1*y2-x2*y1)/d;
-	//*beta = 1.0 - *beta - *alfa;
 }
 
 
@@ -99,10 +99,10 @@ void calcularUV (punto *p1ptr, punto *p2ptr, punto *p3ptr, float *u, float *v)
 	u1 = p1ptr->u; v1 = p1ptr->v;
 	u2 = p2ptr->u; v2 = p2ptr->v;
 	u3 = p3ptr->u; v3 = p3ptr->v;
-	//if(gama>=0){
+	if(gama>=0){
 		*u = alfa*u1 + beta*u2 + gama*u3;
 		*v = alfa*v1 + beta*v2 + gama*v3;
-	//}
+	}
 	
 }
 
