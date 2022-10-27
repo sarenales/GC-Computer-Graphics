@@ -10,9 +10,9 @@ extern GLdouble _ortho_x_min,_ortho_x_max;
 extern GLdouble _ortho_y_min,_ortho_y_max;
 extern GLdouble _ortho_z_min,_ortho_z_max;
 
-int movimiento = 0; // rota = 0 ; trasladar = 1; escalar = 2;
+int movimiento = 1; // rota = 0 ; trasladar = 1; escalar = 2;
 int referencia = 0; // 0 = local & 1 = global
-
+int i;
 
 /**
  * @brief This function just prints information about the use
@@ -72,9 +72,12 @@ void keyboard(unsigned char key, int x, int y) {
     int read = 0;
     object3d *auxiliar_object = 0;
     GLdouble wd,he,midx,midy;
-    int i;
+
     char* fname;
-    GLfloat matriz_rotada[16];
+    movimiento = 0;
+    referencia = 0;
+    GLdouble matriz_rotada[16];
+    elemM *m,*sig_matriz;
     
     switch (key) {
         case 'f':// Carga de objeto desde el fichero
@@ -128,103 +131,102 @@ void keyboard(unsigned char key, int x, int y) {
         case 127: /* <SUPR> */
             // elimina obj seleccionado
             /*Erasing an object depends on whether it is the first one or not*/
-            if (_selected_object == _first_object){
-                /*To remove the first object we just set the first as the current's next*/
-                _first_object = _first_object->next;
-                
-                // a parte de borrar objto tambn su memoria asociada 
-                // tabla_vertices, tabla_poligonos y puntero matrices
-                
-                for( i=0; i< _selected_object->num_faces; i++){
-                    face poligono = _selected_object->face_table[i];
-                    free(poligono.vertex_table);
-                    (_selected_object->face_table[i]);
+            if(_selected_object !=0 ){
+                if (_selected_object == _first_object){
+                    /*To remove the first object we just set the first as the current's next*/
+                    _first_object = _first_object->next;
+                    
+                    // a parte de borrar objto tambn su memoria asociada 
+                    // tabla_vertices, tabla_poligonos y puntero matrices
+                    
+                    for(i=0; i< _selected_object->num_faces; i++){
+                        face poligono = _selected_object->face_table[i];
+                        free(poligono.vertex_table);
+                        (_selected_object->face_table[i]);
+                    }
+                    
+                    /*Once updated the pointer to the first object it is save to free the memory*/
+                    free(_selected_object);
+                    /*Finally, set the selected to the new first one*/
+                    _selected_object = _first_object;
+                    
+                } else {
+                    /*In this case we need to get the previous element to the one we want to erase*/
+                    auxiliar_object = _first_object;
+                    while (auxiliar_object->next != _selected_object)
+                        auxiliar_object = auxiliar_object->next;
+                    /*Now we bypass the element to erase*/
+                    auxiliar_object->next = _selected_object->next;
+                    /*free the memory*/
+                    free(_selected_object);
+                    /*and update the selection*/
+                    _selected_object = auxiliar_object;
                 }
-                
-                /*Once updated the pointer to the first object it is save to free the memory*/
-                free(_selected_object);
-                /*Finally, set the selected to the new first one*/
-                _selected_object = _first_object;
-            } else {
-                /*In this case we need to get the previous element to the one we want to erase*/
-                auxiliar_object = _first_object;
-                while (auxiliar_object->next != _selected_object)
-                    auxiliar_object = auxiliar_object->next;
-                /*Now we bypass the element to erase*/
-                auxiliar_object->next = _selected_object->next;
-                /*free the memory*/
-                free(_selected_object);
-                /*and update the selection*/
-                _selected_object = auxiliar_object;
+            }else{
+                printf("No se puede borrar nada! \n");
             }
+            
             break;
 
         case '-':
             // Reducir el volumen de visualización
             // Escalar - en todos los ejes (caso de objetos) o disminuir volumen de vision (caso camara)
            // if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
-           
+            wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
+            he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
+            /*In order to avoid moving the center of the plane, we get its coordinates*/
+            midx = (_ortho_x_max+_ortho_x_min)/2;
+            midy = (_ortho_y_max+_ortho_y_min)/2;
+            /*The the new limits are set, keeping the center of the plane*/
+            _ortho_x_max = (midx + wd)/2;
+            _ortho_x_min = (midx - wd)/2;
+            _ortho_y_max = (midy + he)/2;
+            _ortho_y_min = (midy - he)/2;
+            
             if(movimiento = 2){
-                elemM *m = _selected_object->mptr;
+                m = _selected_object->mptr;
                 glMatrixMode(GL_MODELVIEW);
-                glLoadMatrixf(m->M);
-                glScalef(0.9,0.9,0.9);
-                glGetFloatv(GL_MODELVIEW_MATRIX,matriz_rotada);
+                glLoadMatrixd(m->M);
+                glScaled(0.9,0.9,0.9);
+                glGetDoublev(GL_MODELVIEW_MATRIX,matriz_rotada);
                 
-                elemM *sig_matriz = malloc(sizeof (elemM));
-                for(int i = 0; i < 16; i++){
+                sig_matriz = malloc(sizeof (elemM));
+                for(i = 0; i < 16; i++){
                     sig_matriz->M[i] = matriz_rotada[i];
                 }
                 sig_matriz->sigPtr = m;
-                _selected_object->mptr = sig_matriz;
-                
-            }else{ 
-                /*Increase the projection plane; compute the new dimensions*/
-                wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
-                he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
-                /*In order to avoid moving the center of the plane, we get its coordinates*/
-                midx = (_ortho_x_max+_ortho_x_min)/2;
-                midy = (_ortho_y_max+_ortho_y_min)/2;
-                /*The the new limits are set, keeping the center of the plane*/
-                _ortho_x_max = (midx + wd)/2;
-                _ortho_x_min = (midx - wd)/2;
-                _ortho_y_max = (midy + he)/2;
-                _ortho_y_min = (midy - he)/2;
+                _selected_object->mptr = sig_matriz;            
             }
-            
-                
             break;
 
         case '+':
             //  Incrementar el volumen de visualización
+            //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
+            /*Increase the projection plane; compute the new dimensions*/
+            wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
+            he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
+            /*In order to avoid moving the center of the plane, we get its coordinates*/
+            midx = (_ortho_x_max+_ortho_x_min)/2;
+            midy = (_ortho_y_max+_ortho_y_min)/2;
+            /*The the new limits are set, keeping the center of the plane*/
+            _ortho_x_max = (midx + wd)/2;
+            _ortho_x_min = (midx - wd)/2;
+            _ortho_y_max = (midy + he)/2;
+            _ortho_y_min = (midy - he)/2;
             
             if(movimiento = 2){
-                elemM *m = _selected_object->mptr;
+                m = _selected_object->mptr;
                 glMatrixMode(GL_MODELVIEW);
-                glLoadMatrixf(m->M);
-                glScalef(1.1,1.1,1.1);
-                glGetFloatv(GL_MODELVIEW_MATRIX,matriz_rotada);
+                glLoadMatrixd(m->M);
+                glScaled(1.1,1.1,1.1);
+                glGetDoublev(GL_MODELVIEW_MATRIX,matriz_rotada);
                 
-                elemM *sig_matriz = malloc(sizeof (elemM));
-                for(int i = 0; i < 16; i++){
+                sig_matriz = malloc(sizeof (elemM));
+                for(i = 0; i < 16; i++){
                     sig_matriz->M[i] = matriz_rotada[i];
                 }
                 sig_matriz->sigPtr = m;
                 _selected_object->mptr = sig_matriz;
-            }
-            else{
-                //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
-                /*Increase the projection plane; compute the new dimensions*/
-                wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
-                he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
-                /*In order to avoid moving the center of the plane, we get its coordinates*/
-                midx = (_ortho_x_max+_ortho_x_min)/2;
-                midy = (_ortho_y_max+_ortho_y_min)/2;
-                /*The the new limits are set, keeping the center of the plane*/
-                _ortho_x_max = (midx + wd)/2;
-                _ortho_x_min = (midx - wd)/2;
-                _ortho_y_max = (midy + he)/2;
-                _ortho_y_min = (midy - he)/2;
             }
             
             
@@ -290,10 +292,11 @@ void keyboard(unsigned char key, int x, int y) {
 
         case 'Z':
         case 'z': //  (Z,z) Deshacer
-            // if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
-
-            // }
-            // break;
+            if(_selected_object != NULL)
+                if(_selected_object->mptr->sigPtr != NULL)
+	    		_selected_object->mptr = _selected_object->mptr->sigPtr;
+            printf("Deshaciendo...\n");
+    	break;
 
 
         default:
@@ -318,7 +321,7 @@ void keyboardspecial(int key, int x, int y){
     object3d *auxiliar_object = 0;
     GLdouble wd,he,midx,midy;
     GLdouble matriz_rotada[16];
-    elemM *m;
+    elemM *m, *sig_matriz;
     
     switch (key) {
         case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
@@ -326,41 +329,132 @@ void keyboardspecial(int key, int x, int y){
             m = _selected_object->mptr;
             
             glMatrixMode(GL_MODELVIEW);
-            
+
             if(referencia == 0)         // Referencia LOCAL
-                glLoadMatrixf(m->M);
+                glLoadMatrixd(m->M);
             else
                 glLoadIdentity();
             
-            
+
             if(movimiento == 0)         // rotar     (0)
-                glRotatef(10,1,0,0);
+                glRotated(10,1,0,0);
             else if(movimiento == 1)    // trasladar (1)
-                glTranslatef(0,1,0);
+                glTranslated(0,1,0);
             else if(movimiento == 2)    // escalar   (2)
-                glScalef(1,1.1,1);
+                glScaled(1,1.1,1);
             
+
             if(referencia == 1)         // Referencia GLOBAL
-                glLoadMatrixf(m->M);
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
             
-            glGetDoublev(GL_MODELVIEW, matriz_rotada);
             
-            
-            elemM *sig_matriz = malloc(sizeof (elemM));
-            
-            for(int i =0; i<16; i++)
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
                 sig_matriz->M[i] = matriz_rotada[i];
-            
+
             sig_matriz->sigPtr = m;
-            _selected_object->next->mptr = sig_matriz;
+            _selected_object->mptr = sig_matriz;
+            printf("UP \n");
             break;
             
         case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
+            m = _selected_object->mptr;
+            
+            glMatrixMode(GL_MODELVIEW);
+
+            if(referencia == 0)         // Referencia LOCAL
+                glLoadMatrixd(m->M);
+            else
+                glLoadIdentity();
+            
+
+            if(movimiento == 0)         // rotar     (0)
+                glRotated(10,-1,0,0);
+            else if(movimiento == 1)    // trasladar (1)
+                glTranslated(0,-1,0);
+            else if(movimiento == 2)    // escalar   (2)
+                glScaled(1,0.9,1);
+            
+
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+            
+            
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+            printf("DOWN \n");
             break;
         case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
+        
+            m = _selected_object->mptr;
+            
+            glMatrixMode(GL_MODELVIEW);
+
+            if(referencia == 0)         // Referencia LOCAL
+                glLoadMatrixd(m->M);
+            else
+                glLoadIdentity();
+            
+
+            if(movimiento == 0)         // rotar     (0)
+                glRotated(10,0,1,0);
+            else if(movimiento == 1)    // trasladar (1)
+                glTranslated(1,0,0);
+            else if(movimiento == 2)    // escalar   (2)
+                glScaled(1.1,1,1);
+            
+
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+            
+            
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+            printf("RIGHT \n");
             break;
         case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
-            break;
+            m = _selected_object->mptr;
+            
+            glMatrixMode(GL_MODELVIEW);
+
+            if(referencia == 0)         // Referencia LOCAL
+                glLoadMatrixd(m->M);
+            else
+                glLoadIdentity();
+            
+
+            if(movimiento == 0)         // rotar     (0)
+                glRotated(10,0,-1,0);
+            else if(movimiento == 1)    // trasladar (1)
+                glTranslated(-1,0,0);
+            else if(movimiento == 2)    // escalar   (2)
+                glScaled(0.9,1,1);
+            
+
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+            
+            
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+            printf("LEFT \n");
+            
         case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z 
             break;
         case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
