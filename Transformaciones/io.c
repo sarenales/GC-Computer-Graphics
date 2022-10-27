@@ -10,23 +10,9 @@ extern GLdouble _ortho_x_min,_ortho_x_max;
 extern GLdouble _ortho_y_min,_ortho_y_max;
 extern GLdouble _ortho_z_min,_ortho_z_max;
 
-int movimiento ; // rota = 0 ; trasladar = 1; escalar = 2;
-int referencia ; // 0 = local & 1 = global
+int movimiento = 0; // rota = 0 ; trasladar = 1; escalar = 2;
+int referencia = 0; // 0 = local & 1 = global
 
-
-/**
-  * funcion para obtener matriz identidad en opengl
-  */ 
-void identity(double *m){
-    int i;
-    for(i=0;i<16;i++){
-        if(i%5==0){//si es multiplo de 5, en este caso, hay que poner uno para que sea identidad
-            m[i]=1.0f;
-        }else{
-            m[i]=0.0f;
-        }
-    }
-}
 
 /**
  * @brief This function just prints information about the use
@@ -88,6 +74,7 @@ void keyboard(unsigned char key, int x, int y) {
     GLdouble wd,he,midx,midy;
     int i;
     char* fname;
+    GLfloat matriz_rotada[16];
     
     switch (key) {
         case 'f':// Carga de objeto desde el fichero
@@ -125,7 +112,6 @@ void keyboard(unsigned char key, int x, int y) {
                     glLoadIdentity();
                     glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M);
                     auxiliar_object->mptr->sigPtr = 0;     // no hay siguiente matriz por ahora
-                   // identity(auxiliar_object->mptr->M);
 
                     printf("%s\n",KG_MSSG_FILEREAD);
                     break;
@@ -177,34 +163,70 @@ void keyboard(unsigned char key, int x, int y) {
             // Reducir el volumen de visualización
             // Escalar - en todos los ejes (caso de objetos) o disminuir volumen de vision (caso camara)
            // if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
-            /*Increase the projection plane; compute the new dimensions*/
-            wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
-            he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
-            /*In order to avoid moving the center of the plane, we get its coordinates*/
-            midx = (_ortho_x_max+_ortho_x_min)/2;
-            midy = (_ortho_y_max+_ortho_y_min)/2;
-            /*The the new limits are set, keeping the center of the plane*/
-            _ortho_x_max = (midx + wd)/2;
-            _ortho_x_min = (midx - wd)/2;
-            _ortho_y_max = (midy + he)/2;
-            _ortho_y_min = (midy - he)/2;
+           
+            if(movimiento = 2){
+                elemM *m = _selected_object->mptr;
+                glMatrixMode(GL_MODELVIEW);
+                glLoadMatrixf(m->M);
+                glScalef(0.9,0.9,0.9);
+                glGetFloatv(GL_MODELVIEW_MATRIX,matriz_rotada);
+                
+                elemM *sig_matriz = malloc(sizeof (elemM));
+                for(int i = 0; i < 16; i++){
+                    sig_matriz->M[i] = matriz_rotada[i];
+                }
+                sig_matriz->sigPtr = m;
+                _selected_object->mptr = sig_matriz;
+                
+            }else{ 
+                /*Increase the projection plane; compute the new dimensions*/
+                wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
+                he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
+                /*In order to avoid moving the center of the plane, we get its coordinates*/
+                midx = (_ortho_x_max+_ortho_x_min)/2;
+                midy = (_ortho_y_max+_ortho_y_min)/2;
+                /*The the new limits are set, keeping the center of the plane*/
+                _ortho_x_max = (midx + wd)/2;
+                _ortho_x_min = (midx - wd)/2;
+                _ortho_y_max = (midy + he)/2;
+                _ortho_y_min = (midy - he)/2;
+            }
+            
                 
             break;
 
         case '+':
             //  Incrementar el volumen de visualización
-            //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
-            /*Increase the projection plane; compute the new dimensions*/
-            wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
-            he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
-            /*In order to avoid moving the center of the plane, we get its coordinates*/
-            midx = (_ortho_x_max+_ortho_x_min)/2;
-            midy = (_ortho_y_max+_ortho_y_min)/2;
-            /*The the new limits are set, keeping the center of the plane*/
-            _ortho_x_max = (midx + wd)/2;
-            _ortho_x_min = (midx - wd)/2;
-            _ortho_y_max = (midy + he)/2;
-            _ortho_y_min = (midy - he)/2;
+            
+            if(movimiento = 2){
+                elemM *m = _selected_object->mptr;
+                glMatrixMode(GL_MODELVIEW);
+                glLoadMatrixf(m->M);
+                glScalef(1.1,1.1,1.1);
+                glGetFloatv(GL_MODELVIEW_MATRIX,matriz_rotada);
+                
+                elemM *sig_matriz = malloc(sizeof (elemM));
+                for(int i = 0; i < 16; i++){
+                    sig_matriz->M[i] = matriz_rotada[i];
+                }
+                sig_matriz->sigPtr = m;
+                _selected_object->mptr = sig_matriz;
+            }
+            else{
+                //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
+                /*Increase the projection plane; compute the new dimensions*/
+                wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
+                he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
+                /*In order to avoid moving the center of the plane, we get its coordinates*/
+                midx = (_ortho_x_max+_ortho_x_min)/2;
+                midy = (_ortho_y_max+_ortho_y_min)/2;
+                /*The the new limits are set, keeping the center of the plane*/
+                _ortho_x_max = (midx + wd)/2;
+                _ortho_x_min = (midx - wd)/2;
+                _ortho_y_max = (midy + he)/2;
+                _ortho_y_min = (midy - he)/2;
+            }
+            
             
             break;
 
@@ -297,32 +319,35 @@ void keyboardspecial(int key, int x, int y){
     GLdouble wd,he,midx,midy;
     GLdouble matriz_rotada[16];
     elemM *m;
+    
     switch (key) {
         case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
             
             m = _selected_object->mptr;
+            
             glMatrixMode(GL_MODELVIEW);
             
-            if(referencia == 0) // Referencia LOCAL
+            if(referencia == 0)         // Referencia LOCAL
                 glLoadMatrixf(m->M);
             else
                 glLoadIdentity();
             
             
-            if(movimiento == 0) // roat (0)
+            if(movimiento == 0)         // rotar     (0)
                 glRotatef(10,1,0,0);
-            else if(movimiento == 1)  // trasladar (1)
+            else if(movimiento == 1)    // trasladar (1)
                 glTranslatef(0,1,0);
-            else if(movimiento == 2)    // movimiento (2)
+            else if(movimiento == 2)    // escalar   (2)
                 glScalef(1,1.1,1);
             
-            if(referencia == 1) // Referencia GLOBAL
+            if(referencia == 1)         // Referencia GLOBAL
                 glLoadMatrixf(m->M);
             
             glGetDoublev(GL_MODELVIEW, matriz_rotada);
             
             
             elemM *sig_matriz = malloc(sizeof (elemM));
+            
             for(int i =0; i<16; i++)
                 sig_matriz->M[i] = matriz_rotada[i];
             
