@@ -10,6 +10,24 @@ extern GLdouble _ortho_x_min,_ortho_x_max;
 extern GLdouble _ortho_y_min,_ortho_y_max;
 extern GLdouble _ortho_z_min,_ortho_z_max;
 
+int movimiento ; // rota = 0 ; trasladar = 1; escalar = 2;
+int referencia ; // 0 = local & 1 = global
+
+
+/**
+  * funcion para obtener matriz identidad en opengl
+  */ 
+void identity(double *m){
+    int i;
+    for(i=0;i<16;i++){
+        if(i%5==0){//si es multiplo de 5, en este caso, hay que poner uno para que sea identidad
+            m[i]=1.0f;
+        }else{
+            m[i]=0.0f;
+        }
+    }
+}
+
 /**
  * @brief This function just prints information about the use
  * of the keys
@@ -53,7 +71,7 @@ void print_help(){
     printf("<REPAG> \t Trasladar -Z; Escalar -Z; Rotar -Z\n");
     printf("<+> \t\t Escalar + en todos los ejes\n");
     printf("<-> \t\t Escalar - en todos los ejes\n");
-    printf("<CTRL + Z> \t Deshacer cambios\n");
+    printf("<Z> \t Deshacer cambios\n");
     printf("\n\n");
 }
 
@@ -65,15 +83,17 @@ void print_help(){
  */
 void keyboard(unsigned char key, int x, int y) {
 
-    char* fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
     int read = 0;
     object3d *auxiliar_object = 0;
     GLdouble wd,he,midx,midy;
-
+    int i;
+    char* fname;
+    
     switch (key) {
         case 'f':// Carga de objeto desde el fichero
         case 'F':
             /*Ask for file*/
+           fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
             printf("%s", KG_MSSG_SELECT_FILE);
             scanf("%s", fname);
             /*Allocate memory for the structure and read the file*/
@@ -97,12 +117,15 @@ void keyboard(unsigned char key, int x, int y) {
                     _first_object = auxiliar_object;
                     _selected_object = _first_object;
 
-                    auxiliar_object->mPtr = (elemM x) malloc(sizeof(elemM)); // reserva de espacio de matriz de representacion
-                    auxiliar_object->mPtr->sigPtr = 0; // como es la primera,  no tiene representacion anterior
-                    glMatrixMake(GL_MODELVIEW);  // applies subsequent matrix operations to the projection matiz stack
-                    glLoadIdentity();
-                    glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mPtr->M);
+                     // al objeto tenemos que decirle que apunte uno nuevo
+                    auxiliar_object->mptr=(elemM*) malloc(sizeof(elemM)); // malloc devuelve un puntero. Un void pointer¿?
 
+                    // cargue identidad en model view
+                    glMatrixMode(GL_MODELVIEW);  // applies subsequent matrix operations to the projection matiz stack
+                    glLoadIdentity();
+                    glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M);
+                    auxiliar_object->mptr->sigPtr = 0;     // no hay siguiente matriz por ahora
+                   // identity(auxiliar_object->mptr->M);
 
                     printf("%s\n",KG_MSSG_FILEREAD);
                     break;
@@ -119,15 +142,14 @@ void keyboard(unsigned char key, int x, int y) {
         case 127: /* <SUPR> */
             // elimina obj seleccionado
             /*Erasing an object depends on whether it is the first one or not*/
-            if (_selected_object == _first_object)
-            {
+            if (_selected_object == _first_object){
                 /*To remove the first object we just set the first as the current's next*/
                 _first_object = _first_object->next;
                 
                 // a parte de borrar objto tambn su memoria asociada 
                 // tabla_vertices, tabla_poligonos y puntero matrices
                 
-                for(int i=; i< _selected_object->num_faces; i++){
+                for( i=0; i< _selected_object->num_faces; i++){
                     face poligono = _selected_object->face_table[i];
                     free(poligono.vertex_table);
                     (_selected_object->face_table[i]);
@@ -154,38 +176,36 @@ void keyboard(unsigned char key, int x, int y) {
         case '-':
             // Reducir el volumen de visualización
             // Escalar - en todos los ejes (caso de objetos) o disminuir volumen de vision (caso camara)
-            if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
-                /*Increase the projection plane; compute the new dimensions*/
-                wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
-                he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
-                /*In order to avoid moving the center of the plane, we get its coordinates*/
-                midx = (_ortho_x_max+_ortho_x_min)/2;
-                midy = (_ortho_y_max+_ortho_y_min)/2;
-                /*The the new limits are set, keeping the center of the plane*/
-                _ortho_x_max = midx + wd/2;
-                _ortho_x_min = midx - wd/2;
-                _ortho_y_max = midy + he/2;
-                _ortho_y_min = midy - he/2;
-            }
+           // if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
+            /*Increase the projection plane; compute the new dimensions*/
+            wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
+            he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
+            /*In order to avoid moving the center of the plane, we get its coordinates*/
+            midx = (_ortho_x_max+_ortho_x_min)/2;
+            midy = (_ortho_y_max+_ortho_y_min)/2;
+            /*The the new limits are set, keeping the center of the plane*/
+            _ortho_x_max = (midx + wd)/2;
+            _ortho_x_min = (midx - wd)/2;
+            _ortho_y_max = (midy + he)/2;
+            _ortho_y_min = (midy - he)/2;
+                
             break;
 
         case '+':
             //  Incrementar el volumen de visualización
             //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
-            //INPLEMENTA EZAZU CTRL + + KONBINAZIOAREN FUNTZIOANLITATEA
-             if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
-                /*Increase the projection plane; compute the new dimensions*/
-                wd=(_ortho_x_max+_ortho_x_min)/KG_STEP_ZOOM;
-                he=(_ortho_y_max+_ortho_y_min)/KG_STEP_ZOOM;
-                /*In order to avoid moving the center of the plane, we get its coordinates*/
-                midx = (_ortho_x_max+_ortho_x_min)/2;
-                midy = (_ortho_y_max+_ortho_y_min)/2;
-                /*The the new limits are set, keeping the center of the plane*/
-                _ortho_x_max = midx + wd/2;
-                _ortho_x_min = midx - wd/2;
-                _ortho_y_max = midy + he/2;
-                _ortho_y_min = midy - he/2;
-             }
+            /*Increase the projection plane; compute the new dimensions*/
+            wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
+            he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
+            /*In order to avoid moving the center of the plane, we get its coordinates*/
+            midx = (_ortho_x_max+_ortho_x_min)/2;
+            midy = (_ortho_y_max+_ortho_y_min)/2;
+            /*The the new limits are set, keeping the center of the plane*/
+            _ortho_x_max = (midx + wd)/2;
+            _ortho_x_min = (midx - wd)/2;
+            _ortho_y_max = (midy + he)/2;
+            _ortho_y_min = (midy - he)/2;
+            
             break;
 
         case '?':
@@ -197,51 +217,40 @@ void keyboard(unsigned char key, int x, int y) {
             // Finalizar la ejecucion de la aplicacion
             exit(0);
             break;
-                // tipo de transformacion 
-        case 'T': // T,t    Activar traslación (desactiva rotación y escalado)
-        case 't':
-            if(trasladar != 1){
-                rotar = 0;
-                trasladar = 1;
-                escalar = 0;
-                printf("Traslacion activada\n");
-            }
-             break;
+        
+        // tipo de transformacion 
+       
 
         case 'R': // R,r   Activar rotación (desactiva traslación y escalado)
         case 'r':
-            if(rotar != 1){
-                rotar = 1;
-                trasladar = 0;
-                escalar = 0;
-                printf("Rotacion activada\n");
-            }
-            break;
+            movimiento = 0;
+            printf("Rotacion activado. \n");
 
+            break;
+        
+        case 'T': // T,t    Activar traslación (desactiva rotación y escalado)
+        case 't':
+            movimiento = 1;
+            printf("Traslacion activado. \n");
+    
+            break;
+            
         case 'E': // E,e   Activar escalado (desactiva rotación y traslación)
         case 'e':
-            if(escalar != 1){
-                rotar = 0;
-                trasladar = 0;
-                escalar = 1;
-                printf("Escalado activado\n");
-            }
+            movimiento = 2;
+            printf("Escalado activado. \n");
             break;
 
         // sistema de referencia
         case 'G': // G,g Activar transformaciones en el sistema de referencia del mundo (transformaciones globales)
         case 'g':
-            if(strcmp(referencia,"Global") != 0){
-                strcpy(referencia,"Global");
-                printf("Sistema de referencia: %s\n",referencia);
-            }
+            referencia = 1;
+            printf("Sistema de referencia: GLOBAL \n");
             break;
         case 'L': // L,l Activar transformaciones en el sistema de referencia local del objeto (objeto 3D, cámara o luces) )
         case 'l':
-            if(strcmp(referencia,"Local") != 0){
-                strcpy(referencia,"Local");
-                printf("Sistema de referencia: %s\n",referencia);
-            }
+            referencia = 0;
+                printf("Sistema de referencia: LOCAL \n");
             break;
 
         // elemento a transformar (en todo momento debe haber algun elemento transformable.)
@@ -258,11 +267,11 @@ void keyboard(unsigned char key, int x, int y) {
             break;
 
         case 'Z':
-        case 'z': // CTRL + (Z,z) Deshacer
-            if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
+        case 'z': //  (Z,z) Deshacer
+            // if (glutGetModifiers() == GLUT_ACTIVE_CTRL){
 
-            }
-            break;
+            // }
+            // break;
 
 
         default:
@@ -286,39 +295,41 @@ void keyboardspecial(int key, int x, int y){
     int read = 0;
     object3d *auxiliar_object = 0;
     GLdouble wd,he,midx,midy;
-
+    GLdouble matriz_rotada[16];
+    elemM *m;
     switch (key) {
         case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
-            GLfloat matriz_rotada[16];
-            matrix *m = _selected_object->matrixptr;
+            
+            m = _selected_object->mptr;
             glMatrixMode(GL_MODELVIEW);
             
-            if(strcmp(referencia,"Local")==0)
-                glLoadMatrixf(m->values);
+            if(referencia == 0) // Referencia LOCAL
+                glLoadMatrixf(m->M);
             else
                 glLoadIdentity();
             
-            if(rotar)
+            
+            if(movimiento == 0) // roat (0)
                 glRotatef(10,1,0,0);
-            else if(traladar)
+            else if(movimiento == 1)  // trasladar (1)
                 glTranslatef(0,1,0);
-            else if(escalar)
+            else if(movimiento == 2)    // movimiento (2)
                 glScalef(1,1.1,1);
             
-            if(strcmp(referencia,"Global")==0)
-                glLoadMatrixf(m->values);
+            if(referencia == 1) // Referencia GLOBAL
+                glLoadMatrixf(m->M);
             
             glGetDoublev(GL_MODELVIEW, matriz_rotada);
             
             
-            matrix *sig_matriz = malloc(sizeof (matrixx));
+            elemM *sig_matriz = malloc(sizeof (elemM));
             for(int i =0; i<16; i++)
-                sig_matriz->values[i] = matriz_rotada[i];
+                sig_matriz->M[i] = matriz_rotada[i];
             
-            sig_matriz->sigptr = m;
-            _selected_object->matrixptr = sig_matriz;
-            
+            sig_matriz->sigPtr = m;
+            _selected_object->next->mptr = sig_matriz;
             break;
+            
         case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
             break;
         case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
