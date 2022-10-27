@@ -11,7 +11,7 @@ extern GLdouble _ortho_y_min,_ortho_y_max;
 extern GLdouble _ortho_z_min,_ortho_z_max;
 
 int movimiento = 1; // rota = 0 ; trasladar = 1; escalar = 2;
-int referencia = 0; // 0 = local & 1 = global
+int referencia = 0; // local = 0; global = 1
 int i;
 
 /**
