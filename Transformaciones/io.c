@@ -29,8 +29,8 @@ void print_help(){
     printf("<F>\t\t Cargar un objeto\n");
     printf("<TAB>\t\t Navegar en los objetos cargados\n");
     printf("<SUPR>\t\t Borrar el objeto seleccionado\n");
-    printf("<CTRL + +>\t Aumentar el campo de vision\n");
-    printf("<CTRL + ->\t Reducir el campo de vision\n\n");
+    printf("<+>\t\t Aumentar el campo de vision\n");
+    printf("<->\t\t Reducir el campo de vision\n\n");
     
     printf("TRANSFORMACIONES AL OBJETO SELECCIONADO \n");
     
@@ -55,9 +55,9 @@ void print_help(){
     printf("<LEFT> \t\t Trasladar -X; Escalar -X;  Rotar -Y\n");
     printf("<AVPAG> \t Trasladar +Z; Escalar +X;  Rotar +Y\n");
     printf("<REPAG> \t Trasladar -Z; Escalar -Z; Rotar -Z\n");
-    printf("<+> \t\t Escalar + en todos los ejes\n");
-    printf("<-> \t\t Escalar - en todos los ejes\n");
-    printf("<Z> \t Deshacer cambios\n");
+    printf("<+> \t\t Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)\n");
+    printf("<-> \t\t Escalar -  en todos los ejes (caso de objetos) o disminuir volumen de visión (caso cámara)\n");
+    printf("<Z> \t\t Deshacer cambios\n");
     printf("\n\n");
 }
 
