@@ -454,10 +454,71 @@ void keyboardspecial(int key, int x, int y){
             sig_matriz->sigPtr = m;
             _selected_object->mptr = sig_matriz;
             printf("LEFT \n");
-            
-        case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z 
             break;
+        case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z 
+            m = _selected_object->mptr;
+            
+            glMatrixMode(GL_MODELVIEW);
+
+            if(referencia == 0)         // Referencia LOCAL
+                glLoadMatrixd(m->M);
+            else
+                glLoadIdentity();
+            
+
+            if(movimiento == 0)         // rotar     (0)
+                glRotated(10,0,0,1);
+            else if(movimiento == 1)    // trasladar (1)
+                glTranslated(0,0,1);
+            else if(movimiento == 2)    // escalar   (2)
+                glScaled(1,1,1.1);
+            
+
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+            
+            
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+            printf("AVPAG \n");
+            break;
+            
         case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
+            m = _selected_object->mptr;
+            
+            glMatrixMode(GL_MODELVIEW);
+
+            if(referencia == 0)         // Referencia LOCAL
+                glLoadMatrixd(m->M);
+            else
+                glLoadIdentity();
+            
+
+            if(movimiento == 0)         // rotar     (0)
+                glRotated(10,0,0,-1);
+            else if(movimiento == 1)    // trasladar (1)
+                glTranslated(0,0,-1);
+            else if(movimiento == 2)    // escalar   (2)
+                glScaled(1,1,0.9);
+            
+
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+            
+            
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+            printf("REPAG \n");
             break;
         default:
             /*In the default case we just print the code of the key. This is usefull to define new cases*/
