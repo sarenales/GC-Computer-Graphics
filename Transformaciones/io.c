@@ -112,10 +112,9 @@ void keyboard(unsigned char key, int x, int y) {
 
                     // cargue identidad en model view
                     glMatrixMode(GL_MODELVIEW);  // applies subsequent matrix operations to the projection matiz stack
-                    glLoadIdentity();
-                    glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M);
+                    glLoadIdentity();            // carga la matriz identidad
+                    glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M); // asocia la matriz a auxiliar
                     auxiliar_object->mptr->sigPtr = 0;     // no hay siguiente matriz por ahora
-
                     printf("%s\n",KG_MSSG_FILEREAD);
                     break;
             }
@@ -178,12 +177,12 @@ void keyboard(unsigned char key, int x, int y) {
             midx = (_ortho_x_max+_ortho_x_min)/2;
             midy = (_ortho_y_max+_ortho_y_min)/2;
             /*The the new limits are set, keeping the center of the plane*/
-            _ortho_x_max = (midx + wd)/2;
-            _ortho_x_min = (midx - wd)/2;
-            _ortho_y_max = (midy + he)/2;
-            _ortho_y_min = (midy - he)/2;
+            _ortho_x_max = midx + wd/2;
+            _ortho_x_min = midx - wd/2;
+            _ortho_y_max = midy + he/2;
+            _ortho_y_min = midy - he/2;
             
-            if(movimiento = 2){
+            /*if(movimiento = 2){
                 m = _selected_object->mptr;
                 glMatrixMode(GL_MODELVIEW);
                 glLoadMatrixd(m->M);
@@ -196,38 +195,38 @@ void keyboard(unsigned char key, int x, int y) {
                 }
                 sig_matriz->sigPtr = m;
                 _selected_object->mptr = sig_matriz;            
-            }
+            }*/
             break;
 
         case '+':
             //  Incrementar el volumen de visualización
             //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
             /*Increase the projection plane; compute the new dimensions*/
-            wd=(_ortho_x_max+_ortho_x_min)*KG_STEP_ZOOM;
-            he=(_ortho_y_max+_ortho_y_min)*KG_STEP_ZOOM;
+            wd=(_ortho_x_max-_ortho_x_min)*KG_STEP_ZOOM;
+            he=(_ortho_y_max-_ortho_y_min)*KG_STEP_ZOOM;
             /*In order to avoid moving the center of the plane, we get its coordinates*/
             midx = (_ortho_x_max+_ortho_x_min)/2;
             midy = (_ortho_y_max+_ortho_y_min)/2;
             /*The the new limits are set, keeping the center of the plane*/
-            _ortho_x_max = (midx + wd)/2;
-            _ortho_x_min = (midx - wd)/2;
-            _ortho_y_max = (midy + he)/2;
-            _ortho_y_min = (midy - he)/2;
+            _ortho_x_max = midx + wd/2;
+            _ortho_x_min = midx - wd/2;
+            _ortho_y_max = midy + he/2;
+            _ortho_y_min = midy - he/2;
             
-            if(movimiento = 2){
-                m = _selected_object->mptr;
-                glMatrixMode(GL_MODELVIEW);
-                glLoadMatrixd(m->M);
-                glScaled(1.1,1.1,1.1);
-                glGetDoublev(GL_MODELVIEW_MATRIX,matriz_rotada);
+            // if(movimiento = 2){
+            //     m = _selected_object->mptr;
+            //     glMatrixMode(GL_MODELVIEW);
+            //     glLoadMatrixd(m->M);
+            //     glScaled(1.1,1.1,1.1);
+            //     glGetDoublev(GL_MODELVIEW_MATRIX,matriz_rotada);
                 
-                sig_matriz = malloc(sizeof (elemM));
-                for(i = 0; i < 16; i++){
-                    sig_matriz->M[i] = matriz_rotada[i];
-                }
-                sig_matriz->sigPtr = m;
-                _selected_object->mptr = sig_matriz;
-            }
+            //     sig_matriz = malloc(sizeof (elemM));
+            //     for(i = 0; i < 16; i++){
+            //         sig_matriz->M[i] = matriz_rotada[i];
+            //     }
+            //     sig_matriz->sigPtr = m;
+            //     _selected_object->mptr = sig_matriz;
+            // }
             
             
             break;
@@ -304,6 +303,8 @@ void keyboard(unsigned char key, int x, int y) {
             printf("%d %c\n", key, key);
             printf("keyboard");
         }
+        
+        fflush(stdout); // no estoy segura de esto
         /*In case we have do any modification affecting the displaying of the object, we redraw them*/
         glutPostRedisplay();
 }
@@ -318,7 +319,6 @@ void keyboardspecial(int key, int x, int y){
     
     char* fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
     int read = 0;
-    object3d *auxiliar_object = 0;
     GLdouble wd,he,midx,midy;
     GLdouble matriz_rotada[16];
     elemM *m, *sig_matriz;
@@ -524,6 +524,7 @@ void keyboardspecial(int key, int x, int y){
             /*In the default case we just print the code of the key. This is usefull to define new cases*/
             printf("%d %c\n", key, key);
             printf("keyboard");
+            break;
     }
     glutPostRedisplay();
 }
