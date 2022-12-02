@@ -1,2 +1,24 @@
 3era parte de este proyecto.
 
+Me hago un mini resumen aclarativo:
+
+Primero de todo recordamos que teneos tres teclas reservadas, para ir cambiando lo que queremos, ya sea un objeto, una camara o el foco. 
+        - <o,O> que los cambios se le apliquen al OBJETO.
+        - <c,C> que los cambios se le apliquen al CAMARA.
+        - <i,I> que los cambios se le apliquen al FOCO, FUENTE DE LUZ.
+        
+Anteriormente, cargabamos objetos y los visualizabamos de forma estatica. Las modificaciones que realizabamos, se aplicaban solamente en el objeto. La única camara,
+que eramos nosotros, no se movia. Si el objeto salia del plano agur, no la veiamos.
+
+Ahora tenemos camaras. Dos tipos de camaras. Una asociada a cada objeto, y las otras las puras, que son camaras  independientes, van flotando viendo lo que pasa.
+
+Para cambiar entre TIPOS de camaras, es con la tecla <K> (mayuscula). 
+
+En el espacio, podemos tener muchas camaras flotando, al igual que teniamos los objetos en el plano (una lista de matrices). Cada camara entonces tendra sus 
+caracteristicas las cuales hay que guardar tambien. Habra que expandir entonces nuestra estructura de camara. Para cambiar entre camaras puras sera por medio de la
+tecla <k> (minuscula).
+
+Las camaras puras, se puede mover en modo analisis(<L>) o modo vuelo(<G>).
+  - Modo vuelo: como objeto independiente. Puede Rotar y Trasladar (avanzar,retroceder). Para cambiar de volumen de vision, por medio de Escalado (<E>), desactiva Rotar 
+  y trasladar para poder hacer zoom in/out por medio de <AVPAG>/<REPAG>.
+  - Modo analisis:
