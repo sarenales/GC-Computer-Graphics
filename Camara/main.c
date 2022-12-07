@@ -15,6 +15,19 @@ GLdouble _ortho_z_min,_ortho_z_max;         /*Variables for the control of the o
 
 object3d * _first_object= 0;                /*List of objects*/
 object3d * _selected_object = 0;            /*Object currently selected*/
+camara *_first_camara=0;
+camara *_selected_camara=0;
+
+
+int referencia = 0;                         /*global, local --> para obj*/
+int modo = 0;                               /*obj, cam, camaraobj, iluminacion*/
+
+
+int proyeccion=0;                           /* perspectiva, paralela*/
+int vista=1;                                /* vuelo, analisis --> para cam*/
+
+
+
 
 /** GENERAL INITIALIZATION **/
 void initialization (){
@@ -34,6 +47,13 @@ void initialization (){
 
     /*Definition of the method to draw the objects*/
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    _selected_camara =(camara*) malloc(sizeof(camara));
+
+    glLoadIdentity();
+    glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    _first_camara=_selected_camara;
+
 }
 
 
