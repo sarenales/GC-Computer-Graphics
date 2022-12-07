@@ -1,5 +1,4 @@
-# GC
-Gráficos por Computador - Computer Graphics
+# Gráficos por Computador - Computer Graphics
 
 The aim of this subject is to:
     - Provide knowledge and overview of the process of generation of images of virtual environments.
