@@ -19,6 +19,11 @@ caracteristicas las cuales hay que guardar tambien. Habra que expandir entonces 
 tecla <k> (minuscula).
 
 Las camaras puras, se puede mover en modo analisis(<L>) o modo vuelo(<G>).
-  - Modo vuelo: como objeto independiente. Puede Rotar y Trasladar (avanzar,retroceder). Para cambiar de volumen de vision, por medio de Escalado (<E>), desactiva Rotar 
+  - Modo vuelo: como objeto independiente. 
+  Puede Rotar y Trasladar (avanzar,retroceder). Para cambiar de volumen de vision, por medio de Escalado (<E>), desactiva Rotar 
   y trasladar para poder hacer zoom in/out por medio de <AVPAG>/<REPAG>.
-  - Modo analisis:
+  
+  - Modo analisis: cámara apuntará al objeto seleccionado y todos sus movimiento depederán de él.
+  Tomaremos este objeto como orígen, orbitraremos en torno a él. El único movimiento que puede hacer la cámara es la de acercarse o alejarse del objeto. Para eso con el 
+  Avpag (avanzar) y Repag (alejar).
+  
