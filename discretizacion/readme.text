@@ -1,2 +1,2 @@
-El objetivo de esta primera pr´actica de la asignatura de Gr´aficos por Computador, sobre el primer tema dado, discretizacion, es desarrollar una aplicacion que mapee una textura sobre un tri´angulo. Es decir, dados tres puntos, la aplicaci´on dibujar´a un tri´angulo con dichos puntos y mapear´a en ´el un
-triangulo equivalente de una foto del desarrollador, en formato .ppm. Para la realizaci´on de este se realizar´a mediante la librer´ıa OpenGL de C.
+El objetivo de esta primera practica de la asignatura de Graficos por Computador, sobre el primer tema dado, discretizacion, es desarrollar una aplicacion que mapee una textura sobre un tri´angulo. Es decir, dados tres puntos, la aplicaci´on dibujar´a un tri´angulo con dichos puntos y mapear´a en ´el un
+triangulo equivalente de una foto del desarrollador, en formato .ppm. Para la realizacion de este se realizara mediante la librerıa OpenGL de C.
