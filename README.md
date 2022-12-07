@@ -8,3 +8,4 @@ The aim of this subject is to:
     - Get the handling capacity of a virtual camera and the for obtaining images of virtual scenes.
     
     - Carrying out practices to achieve the ability to manage all concepts seen in theory.
+    
