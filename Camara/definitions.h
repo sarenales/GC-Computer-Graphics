@@ -56,6 +56,26 @@
 
 #define KG_MAX_DOUBLE                       10E25
 
+// referencia
+#define GLOBAL                              0
+#define LOCAL                               1
+
+
+// modo
+#define OBJETO                              0
+#define CAMARA                              1
+#define CAMARAOBJETO                        2
+#define ILUMINACION                         3
+
+// proyeccion
+#define PERSPECTIVA                         0
+#define PARALELO                            1
+
+// vista
+#define VUELO                               0
+#define ANALISIS                            1
+
+
 /** STRUCTURES **/
 
 /****************************
@@ -99,6 +119,7 @@ typedef struct {
 typedef struct {
     GLint num_vertices;                 /* number of vertices in the face */
     GLint *vertex_table;                /* table with the index of each vertex */
+    vector3 normal;                     /* the normal vecto of a poligon */
 } face;
 
 /****************************
@@ -109,6 +130,23 @@ typedef struct elemM{
     GLdouble M[16];
     struct elemM *sigPtr;
 } elemM;
+
+
+
+
+typedef struct camara{
+    GLdouble M[16];
+    GLdouble Minv[16];
+    GLdouble projection[6];
+    int tipo;
+    GLint num_vertices;                 /* number of vertices in the camara*/
+    vertex *vertex_table;               /* table of vertices */
+    GLint num_faces;                    /* number of faces in the camara */
+    face *face_table;                   /* table of faces */
+    point3 min;                         /* coordinates' lower bounds */
+    point3 max;                         /* coordinates' bigger bounds */
+    struct camara *next;
+} camara;
 
 
 /****************************
