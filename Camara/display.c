@@ -1,9 +1,10 @@
-#include "definitions.h"
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <stdio.h>
 
+#include "definitions.h"
+#include "camara.h"
 /** EXTERNAL VARIABLES **/
 
 extern GLdouble _window_ratio;
@@ -15,32 +16,11 @@ extern object3d *_first_object;
 extern object3d *_selected_object;
 extern camara *_first_camara;
 extern camara *_selected_camara;
-extern int visualizar;         
-extern int proyeccion;                  // perspectiva=0; paralela =1;
-extern int referencia ; // local = 0; global = 1 
+extern int modo;         
+extern int proyeccion;                  
+extern int referencia ; 
 
 
-/**
- * @brief Function to calculate de matrix Mcsr of the camera
- */
-void obtenerMCSR(GLdouble *M, GLdouble *MCSR){
-    MCSR[0]=M[0];
-    MCSR[1]=M[4];
-    MCSR[2]=M[8];
-    MCSR[3]=0;
-    MCSR[4]=M[1];
-    MCSR[5]=M[5];
-    MCSR[6]=M[9];
-    MCSR[7]=0;
-    MCSR[8]=M[2];
-    MCSR[9]=M[6];
-    MCSR[10]=M[10];
-    MCSR[11]=0;
-    MCSR[12]=-(M[0]*M[12]+M[1]*M[13]+M[2]*M[14]);
-    MCSR[13]=-(M[4]*M[12]+M[5]*M[13]+M[6]*M[14]);
-    MCSR[14]=-(M[8]*M[12]+M[9]*M[13]+M[10]*M[14]);
-    MCSR[15]=1;
-}
 
 
 
@@ -143,10 +123,10 @@ void display(void) {
 
     
 
-    if((_selected_object!=NULL) && (visualizar==0)){
+    if((_selected_object!=NULL) && (modo==0)){
         obtenerMCSR(_selected_object->mptr->M, MCSR);
     }
-    if ((_selected_object!=NULL) && (_selected_camara!=NULL) && (visualizar==1)){
+    if ((_selected_object!=NULL) && (_selected_camara!=NULL) && (modo==1)){
         obtenerMCSR(_selected_camara->M, MCSR);
     }
 
