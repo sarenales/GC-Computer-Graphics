@@ -147,7 +147,12 @@ void keyboard(unsigned char key, int x, int y) {
             glGetDoublev(GL_MODELVIEW_MATRIX,m1->M);
             get_matriz_objeto(m1->M,e,m2->M);
 
-           // auxiliar_camara->M = m1->M;
+
+            for(i=0; i<16; i++){
+                auxiliar_camara->M[i] = m1->M[i];
+                auxiliar_camara->Mobj[i] = m2->M[i];
+            }
+            // auxiliar_camara->M = m1->M;
             // auxiliar_camara->M = m2->M;
             
             auxiliar_camara->projection[0] = -0.1;
@@ -182,7 +187,7 @@ void keyboard(unsigned char key, int x, int y) {
             if(vista == ANALISIS)
                 mirar_obj_selec();
         }else 
-            printf("No hay ningun objeto cargado\n");
+            printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
         break;
 
         case 127: /* <SUPR> */
@@ -212,7 +217,7 @@ void keyboard(unsigned char key, int x, int y) {
                     mirar_obj_selec();
                 }
             }else{
-                printf("No se puede borrar nada! \n");
+               printf("%s: %s\n", fname, KG_MSSG_NODELETE);
             }    
         break;
         
@@ -249,7 +254,7 @@ void keyboard(unsigned char key, int x, int y) {
                 }
             }
             else
-                printf("No hay ningun objeto cargado.\n");
+                printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
             
         break;
         
@@ -282,7 +287,7 @@ void keyboard(unsigned char key, int x, int y) {
                 }
             }
             else
-                printf("No hay ningun objeto cargado.\n");
+                printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
         break;
 
         case '?':
@@ -395,7 +400,7 @@ void keyboard(unsigned char key, int x, int y) {
         case 'z': //  (Z,z) Deshacer
             if(_selected_object != NULL)
                 if(_selected_object->mptr->sigPtr != NULL)
-                _selected_object->mptr = _selected_object->mptr->sigPtr;
+                    _selected_object->mptr = _selected_object->mptr->sigPtr;
             printf("Deshaciendo...\n");
         break;
         
@@ -406,16 +411,18 @@ void keyboard(unsigned char key, int x, int y) {
         case 'k': // Cambiar de camara entre camaras puras
             if (_selected_camara!=NULL){
                 _selected_camara = _selected_camara->next;
-                if (_selected_camara == 0) _selected_camara = _first_camara;
-                if(vista == ANALISIS)
-                    mirar_obj_selec();
+                if(modo==CAMARA){
+                    if (_selected_camara == 0) _selected_camara = _first_camara;
+                    if(vista == ANALISIS)
+                        mirar_obj_selec();            
+                }
             }else 
-                printf("No hay ninguna camara cargada\n");
+                printf("%s: %s\n", fname, KG_MSSG_NOCAM);
         break;
 
         case 'K': // intercambiar de camara pura a camara asociada a obj y viceversa
             // visualizar desde el objeto
-            if (_selected_camara!=NULL || _selected_object!=NULL){
+            if (_selected_camara!=NULL && _selected_object!=NULL){
                 if(modo != CAMARAOBJETO){
                     modo = CAMARAOBJETO;
                     printf("Punto de vista del objeto.\n");
@@ -425,7 +432,7 @@ void keyboard(unsigned char key, int x, int y) {
                     printf("Modo Camara. \n");
                 }
             }else 
-                printf("No hay ningun objeto cargado. \n");
+                printf("%s: %s and %s \n", fname, KG_MSSG_NOOBJ, KG_MSSG_NOCAM);
         break;
         
         
@@ -433,7 +440,7 @@ void keyboard(unsigned char key, int x, int y) {
         
         case 'p':
         case 'P':
-            if (_selected_camara!=NULL || _selected_object != NULL){
+            if (_selected_object != NULL){
                 proyeccion = 1 - proyeccion;
                 if(proyeccion){
                     printf("Modo de vista: Perspectiva\n");
@@ -453,6 +460,8 @@ void keyboard(unsigned char key, int x, int y) {
                     _selected_camara->projection[4] = 0;
                     _selected_camara->projection[5] = _ortho_z_max;
                 }
+            }else{
+                printf("%s: %s \n", fname, KG_MSSG_NOOBJ);
             }
         break;
 
@@ -492,106 +501,108 @@ void keyboardspecial(int key, int x, int y){
             m = _selected_object->mptr;
             if(referencia == 0)         // Referencia LOCAL
                glLoadMatrixd(m->M);
-            else
+            if(referencia == 1)         // referencia GLOBAL
                glLoadIdentity();
         }
         else if(modo == CAMARA) // visualice camara
         {
-            if(referencia == 0)         // Referencia LOCAL
+            if(vista == 0)         // Referenciavista modo vuelo
                 glLoadMatrixd(_selected_camara->M);
-            else
+            if(vista == 1)          // modo vuelo 
                glLoadIdentity();
         }
-            switch (key) {
-                case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,1,0,0);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,1,0);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1.1,1);
-                    
-                    printf("UP \n");
-                    break;
-                    
-                case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,-1,0,0);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,-1,0);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,0.9,1);
+        
+        
+        switch (key) {
+            case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,1,0,0);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(0,1,0);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(1,1.1,1);
                 
-                    printf("DOWN \n");
-                    break;
-                case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,1,0);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(1,0,0);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1.1,1,1);
-                    
+                printf("UP \n");
+                break;
+                
+            case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,-1,0,0);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(0,-1,0);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(1,0.9,1);
+            
+                printf("DOWN \n");
+                break;
+            case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,0,1,0);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(1,0,0);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(1.1,1,1);
+                
 
-                    printf("RIGHT \n");
-                    break;
-                case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,-1,0);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(-1,0,0);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(0.9,1,1);
-                    
-                    printf("LEFT \n");
-                    break;
-                case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z             
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,0,1);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,1);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1,1.1);
-                    
-                    printf("AVPAG \n");
-                    break;
-                    
-                case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
-                    if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,0,-1);
-                    else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,-1);
-                    else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1,0.9);
-                    
-                    printf("REPAG \n");
-                    break;
-            }
-            if(modo == OBJETO) // visualise obj
-            {
-                if(referencia == 1)         // Referencia GLOBAL** modo vuelo
-                    glMultMatrixd(m->M);
-                            
-                glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);    
-                sig_matriz = malloc(sizeof (elemM));            
-                for(i =0; i<16; i++)
-                    sig_matriz->M[i] = matriz_rotada[i];
-                            
-                sig_matriz->sigPtr = m;
-                _selected_object->mptr = sig_matriz;
-                            
-                glutPostRedisplay();
-            }
-            else if(modo == CAMARA)
-            {
-                if(referencia == 1)         // Referencia GLOBAL** modo vuelo
-                    glMultMatrixd(_selected_camara->M);
-            
-                glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
-            
-                glutPostRedisplay();
-            }
-        }    
+                printf("RIGHT \n");
+                break;
+            case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,0,-1,0);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(-1,0,0);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(0.9,1,1);
+                
+                printf("LEFT \n");
+                break;
+            case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z             
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,0,0,1);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(0,0,1);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(1,1,1.1);
+                
+                printf("AVPAG \n");
+                break;
+                
+            case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
+                if(movimiento == 0)         // rotar     (0)
+                    glRotated(10,0,0,-1);
+                else if(movimiento == 1)    // trasladar (1)
+                    glTranslated(0,0,-1);
+                else if(movimiento == 2)    // escalar   (2)
+                    glScaled(1,1,0.9);
+                
+                printf("REPAG \n");
+                break;
+        }
+        if(modo == OBJETO) // visualise obj
+        {
+            if(referencia == 1)         // Referencia GLOBAL
+                glMultMatrixd(m->M);
+                        
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);    
+            sig_matriz = malloc(sizeof (elemM));            
+            for(i =0; i<16; i++)
+                sig_matriz->M[i] = matriz_rotada[i];
+                        
+            sig_matriz->sigPtr = m;
+            _selected_object->mptr = sig_matriz;
+                        
+            glutPostRedisplay();
+        }
+        else if(modo == CAMARA)
+        {
+            if(vista == 1)         // Referencia  modo vuelo
+                glMultMatrixd(_selected_camara->M);
+        
+            glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
+        
+            glutPostRedisplay();
+        }
+    }    
 }  
 
 
