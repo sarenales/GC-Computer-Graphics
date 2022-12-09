@@ -2,9 +2,12 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+
 #include "display.h"
 #include "io.h"
 #include "definitions.h"
+#include "load_obj.h"
+#include "camara.h"
 
 /** GLOBAL VARIABLES **/
 
@@ -17,6 +20,9 @@ object3d * _first_object= 0;                /*List of objects*/
 object3d * _selected_object = 0;            /*Object currently selected*/
 camara *_first_camara=0;
 camara *_selected_camara=0;
+
+elemM *m1=0;
+elemM *m2=0;
 
 
 int referencia = 0;                         /*global, local --> para obj*/
@@ -45,14 +51,59 @@ void initialization (){
     /*Definition of the background color*/
     glClearColor(KG_COL_BACK_R, KG_COL_BACK_G, KG_COL_BACK_B, KG_COL_BACK_A);
 
-    /*Definition of the method to draw the objects*/
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     _selected_camara =(camara*) malloc(sizeof(camara));
-
+    
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    // glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    // _first_camara=_selected_camara;
+    
+    
+    // _first_camara =(camara*) malloc(sizeof(camara));
+    printf("MAIN llega aqui 1\n");
+   
+    vector3* a;
+    a->x = 5;
+    a->y = 5;
+    a->z = 5;
+    
+    m1 =(elemM*) malloc( sizeof(elemM));
+    m2 =(elemM*) malloc( sizeof(elemM));
+
+    printf("MAIN llega aqui 2\n");
+    
+    
+    
+    // printf("llega aqui 2.1\n");
+     // glLoadIdentity();
+    printf("MAIN no le gusta el glulookat \n");
+    gluLookAt(a->x,a->y,a->z,0,0,0,0,1,0);
+    //gluLookAt(5,5,5,0,0,0,0,1,0);
+    printf("MAIN llega aqui 3:  le gusta el glulookat \n");
+    
     glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
     _first_camara=_selected_camara;
+    printf("MAIN llega aqui 4\n");
+    
+    get_matriz_objeto(m1->M, a, m2->M);
+    printf("MAIN llega aqui 5\n");
+    
+    _selected_camara->projection[0] = -0.1;
+    _selected_camara->projection[1] = 0.1;
+    _selected_camara->projection[2] = -0.1;
+    _selected_camara->projection[3] = 0.1;
+    _selected_camara->projection[4] = 0.1;
+    _selected_camara->projection[5] = 1000;
+    printf("MAIN llega aqui 6\n");
+    
+    // cargar_obj_camara(_selected_camara);
+    // _selected_camara->next = 0;
+    // _selected_camara=_first_camara;
+    
+    /*Definition of the method to draw the objects*/
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+
+    
 
 }
 
