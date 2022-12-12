@@ -66,6 +66,109 @@ void mirar_obj_selec(){
 }
 
 
+void centre_camera_to_obj(object3d *obj){
+	vector3 camera_pos = (vector3) { 
+		.x = _selected_camara->Minv[12], 
+		.y = _selected_camara->Minv[13], 
+		.z = _selected_camara->Minv[14] 
+	};
+    vector3 camera_front = (vector3) { 
+		.x = obj->mptr->M[12], 
+		.y = obj->mptr->M[13], 
+		.z = obj->mptr->M[14] 
+	};
+    vector3 camera_up = (vector3) { 
+		.x = 0, 
+		.y = 1, 
+		.z = 0 
+	};
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z,
+              camera_front.x, camera_front.y, camera_front.z,
+              camera_up.x, camera_up.y, camera_up.z);
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);
+
+    _selected_camara->Minv[0] = _selected_camara->M[0];
+    _selected_camara->Minv[1] = _selected_camara->M[4];
+    _selected_camara->Minv[2] = _selected_camara->M[8];
+    _selected_camara->Minv[3] = 0;
+
+    _selected_camara->Minv[4] = _selected_camara->M[1];
+    _selected_camara->Minv[5] = _selected_camara->M[5];
+    _selected_camara->Minv[6] = _selected_camara->M[9];
+    _selected_camara->Minv[7] = 0;
+
+    _selected_camara->Minv[8] = _selected_camara->M[2];
+    _selected_camara->Minv[9] = _selected_camara->M[6];
+    _selected_camara->Minv[10] = _selected_camara->M[10];
+    _selected_camara->Minv[11] = 0;
+
+    _selected_camara->Minv[12] = camera_pos.x;
+    _selected_camara->Minv[13] = camera_pos.y;
+    _selected_camara->Minv[14] = camera_pos.z;
+    _selected_camara->Minv[15] = 1;
+
+
+}
+
+
+void create_camara(vector3 pos_camara, vector3 front_cam, vector3 up_cam,camara *c){
+
+	c->next = 0;
+	c->tipo_proyeccion = PERSPECTIVA;
+	
+	c->proyeccion = (proyeccion*) malloc(sizeof (proyeccion));
+	c->proyeccion-> izq = -0.1;
+	c->proyeccion-> der = 0.1;
+	c->proyeccion-> alto = 0.1:
+	c->proyeccion-> bajo = -0.1;
+	c->proyeccion-> lejos = 1000.0;
+	c->proyeccion-> cerca = 0.1;
+
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(pos_camara.x, pos_camara.y, pos_camara.z
+				front_cam.x, front_cam.y, front_cam.z
+				up_cam.x, up_cam.y, up_cam.z);
+				
+	glGetDoublev(GL_MODELVIEW_MATRIX, c->M);
+	
+	
+	
+
+}
+
+void add_camera(){
+	camara *c = (camara*) malloc(sizeof(camara));
+	
+	vector3 pos_cam;
+	pos_cam.x = 5.0:
+	pos_cam.y = 5.0;
+	pos_cam.z = -3.0;
+	
+	
+	vector3 front_cam;
+	front_cam.x = 0.0;
+	front_cam.y = 0.0;
+	front_cam.z = 0.0;
+	
+	vector3 up_cam;
+	up_cam.x = 0.0;
+	up_cam.y = 1.0;
+	up_cam.z = 0.0;
+	
+	create_camara(pos_cam, front_cam, up_cam, c);
+	
+	add_camara_to_list(c);
+	
+	
+}
+
 /**
  * @brief Function to calculate de matrix Mcsr of the camera
  */
