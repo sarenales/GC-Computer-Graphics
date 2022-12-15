@@ -14,8 +14,11 @@ extern GLdouble _ortho_z_min,_ortho_z_max;
 
 extern object3d *_first_object;
 extern object3d *_selected_object;
+
 extern camara *_first_camara;
 extern camara *_selected_camara;
+extern camara *_object_camara;
+
 extern int modo;         
 extern int proyeccion;                  
 extern int referencia ; 
@@ -23,6 +26,47 @@ extern int referencia ;
 
 
 
+/**
+ * @brief Function to calculate de matrix Mcsr of the camera
+ */
+void obtenerMCSR(GLdouble *M, GLdouble *MCSR){
+    MCSR[0]=M[0];
+    MCSR[1]=M[4];
+    MCSR[2]=M[8];
+    MCSR[3]=0;
+    MCSR[4]=M[1];
+    MCSR[5]=M[5];
+    MCSR[6]=M[9];
+    MCSR[7]=0;
+    MCSR[8]=M[2];
+    MCSR[9]=M[6];
+    MCSR[10]=M[10];
+    MCSR[11]=0;
+    MCSR[12]=-(M[0]*M[12]+M[1]*M[13]+M[2]*M[14]);
+    MCSR[13]=-(M[4]*M[12]+M[5]*M[13]+M[6]*M[14]);
+    MCSR[14]=-(M[8]*M[12]+M[9]*M[13]+M[10]*M[14]);
+    MCSR[15]=1;
+}
+
+
+GLdouble producto_escalar(point3 uno, vector3 normal, GLfloat *mo, GLfloat *mc){
+
+    vector3 n, co, cero;
+    GLfloat m[16];
+    matriz_csr(m, mo);
+
+    n.x = mc[12] * m[0] + mc[13] * m[4] + mc[14] * m[8] + m[12];
+    n.y = mc[12] * m[1] + mc[13] * m[5] + mc[14] * m[9] + m[13];
+    n.z = mc[12] * m[2] + mc[13] * m[6] + mc[14] * m[10] + m[14];
+
+    co.x = n.x - uno.x;
+    co.y = n.y - uno.y;
+    co.z = n.z - uno.z;
+
+
+
+    return (co.x * normal.x) + (co.y * normal.y) + (co.z * normal.z);
+}
 
 int poligono_delantero(object3d *o,face f){
 	/*First we get the camera location*/
@@ -113,20 +157,23 @@ void display(void) {
     glLoadIdentity();
 
  
-    if( proyeccion== 0) { // perspectiva
+    if( proyeccion == PERSPECTIVA) { // perspectiva
         glFrustum(-0.1, 0.1, -0.1, 0.1, 0.1, 100.0);
     }
-    else{ // paralela
+    else if(proyeccion == PARALELO){ // paralela
         glOrtho(-5.0, 5.0, -5.0, 5.0, 0.0, 100.0);
     }
 
 
     
 
-    if((_selected_object!=NULL) && (modo==0)){
+    if((_selected_object!=NULL) && (modo==OBJETO || modo==CAMARAOBJETO)){
         obtenerMCSR(_selected_object->mptr->M, MCSR);
     }
-    if ((_selected_object!=NULL) && (_selected_camara!=NULL) && (modo==1)){
+	if((_selected_object!=NULL) && (modo==OBJETO || modo==CAMARAOBJETO)){
+		obtenerMCSR();
+	}
+    if ((_selected_object!=NULL) && (_selected_camara!=NULL) && (modo==CAMARA)){
         obtenerMCSR(_selected_camara->M, MCSR);
     }
 
@@ -135,6 +182,10 @@ void display(void) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //glLoadMatrixd(MCSR);
+	if(modo != CAMARAOBJETO){
+		glLoadMatrixd(_selected_camara->M);
+	}else
+		glLoadMatrixd(_object_camara->M);
     
     /*First, we draw the axes*/
     draw_axes();
