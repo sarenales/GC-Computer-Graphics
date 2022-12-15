@@ -10,6 +10,8 @@
 
 extern camara *_first_camara;
 extern camara *_selected_camara;
+extern camara *_object_camara;
+
 
 extern object3d *_first_object;
 extern object3d *_selected_object;
@@ -49,20 +51,40 @@ void cargar_obj_camara(camara *cam){
 }
 
 void mirar_obj_selec(){
-		vector3 obj,cam;
-        
-		obj.x = _selected_object->mptr->M[12];
-		obj.y = _selected_object->mptr->M[13];
-		obj.z = _selected_object->mptr->M[14];
-        
-		cam.x = _selected_camara->M[12];
-		cam.y = _selected_camara->M[13];
-		cam.z = _selected_camara->M[14];
-        
-		glMatrixMode(GL_MODELVIEW);
+	
+		point3 at, E;
+		vector3 V;
+		
+		at.x = _selected_object->mptr->M[12];
+		at.y = _selected_object->mptr->M[13];
+		at.z = _selected_object->mptr->M[14];
+		
+		// eje de la camara
+		V.x = _selected_camara->M[4];
+		V.y = _selected_camara->M[5];
+		V.z = _selected_camara->M[6];
+		
 		glLoadIdentity();
-		gluLookAt(cam.x,cam.y,cam.z,obj.x,obj.y,obj.z,0,1,0);
-		glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+		glTranslated(at.x, at.y, at.z);
+		glRotated(V.x, V.y, V.z, 0);
+		glTranslated(-(at.x),-(at.y),-(at.y));
+		glMultMatrixd(_selected_camara->M);
+		glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);
+		
+		// vector3 obj,cam;
+        
+		// obj.x = _selected_object->mptr->M[12];
+		// obj.y = _selected_object->mptr->M[13];
+		// obj.z = _selected_object->mptr->M[14];
+        
+		// cam.x = _selected_camara->M[12];
+		// cam.y = _selected_camara->M[13];
+		// cam.z = _selected_camara->M[14];
+        
+		// glMatrixMode(GL_MODELVIEW);
+		// glLoadIdentity();
+		// gluLookAt(cam.x,cam.y,cam.z,obj.x,obj.y,obj.z,0,1,0);
+		// glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
 }
 
 
@@ -121,33 +143,59 @@ void create_camara(vector3 pos_camara, vector3 front_cam, vector3 up_cam,camara 
 	c->next = 0;
 	c->tipo_proyeccion = PERSPECTIVA;
 	
-	c->proyeccion = (proyeccion*) malloc(sizeof (proyeccion));
-	c->proyeccion-> izq = -0.1;
-	c->proyeccion-> der = 0.1;
-	c->proyeccion-> alto = 0.1:
-	c->proyeccion-> bajo = -0.1;
-	c->proyeccion-> lejos = 1000.0;
-	c->proyeccion-> cerca = 0.1;
+	// c->proj = (proy) malloc(sizeof (proy));
+    
+	c->proj.izq = -0.1;
+	c->proj.der = 0.1;
+	c->proj.alto = 0.1;
+	c->proj.bajo = -0.1;
+	c->proj.lejos = 1000.0;
+	c->proj.cerca = 0.1;
 
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(pos_camara.x, pos_camara.y, pos_camara.z
-				front_cam.x, front_cam.y, front_cam.z
+	gluLookAt(pos_camara.x, pos_camara.y, pos_camara.z,
+				front_cam.x, front_cam.y, front_cam.z,
 				up_cam.x, up_cam.y, up_cam.z);
 				
 	glGetDoublev(GL_MODELVIEW_MATRIX, c->M);
 	
-	
+	c->Minv[0] = c->M[0];
+	c->Minv[1] = c->M[4];
+    c->Minv[2] = c->M[8];
+    c->Minv[3] = 0;
+
+    c->Minv[4] = c->M[1];
+    c->Minv[5] = c->M[5];
+    c->Minv[6] = c->M[9];
+    c->Minv[7] = 0;
+
+    c->Minv[8] = c->M[2];
+    c->Minv[9] = c->M[6];
+    c->Minv[10] = c->M[10];
+    c->Minv[11] = 0;
+
+    c->Minv[12] = pos_camara.x;
+    c->Minv[13] = pos_camara.y;
+    c->Minv[14] = pos_camara.z;
+    c->Minv[15] = 1;
 	
 
 }
 
-void add_camera(){
+void add_camara_to_list(camara *cam){
+	cam->next = _first_camara;
+	_first_camara = cam;
+	_selected_camara = _first_camara;
+}
+
+
+void add_camara(){
 	camara *c = (camara*) malloc(sizeof(camara));
 	
 	vector3 pos_cam;
-	pos_cam.x = 5.0:
+	pos_cam.x = 5.0;
 	pos_cam.y = 5.0;
 	pos_cam.z = -3.0;
 	
@@ -164,29 +212,46 @@ void add_camera(){
 	
 	create_camara(pos_cam, front_cam, up_cam, c);
 	
-	add_camara_to_list(c);
-	
-	
+	add_camara_to_list(c);	
 }
 
-/**
- * @brief Function to calculate de matrix Mcsr of the camera
- */
-void obtenerMCSR(GLdouble *M, GLdouble *MCSR){
-    MCSR[0]=M[0];
-    MCSR[1]=M[4];
-    MCSR[2]=M[8];
-    MCSR[3]=0;
-    MCSR[4]=M[1];
-    MCSR[5]=M[5];
-    MCSR[6]=M[9];
-    MCSR[7]=0;
-    MCSR[8]=M[2];
-    MCSR[9]=M[6];
-    MCSR[10]=M[10];
-    MCSR[11]=0;
-    MCSR[12]=-(M[0]*M[12]+M[1]*M[13]+M[2]*M[14]);
-    MCSR[13]=-(M[4]*M[12]+M[5]*M[13]+M[6]*M[14]);
-    MCSR[14]=-(M[8]*M[12]+M[9]*M[13]+M[10]*M[14]);
-    MCSR[15]=1;
+void inicial_camaras(){
+
+
+    camara *aux = (camara*)malloc(sizeof(camara));
+
+    _object_camara = (camara*)malloc(sizeof(camara));
+    
+	_object_camara->tipo_proyeccion = PERSPECTIVA;
+	
+    //_object_camara->proj = (proy*)malloc(sizeof (proy));
+    _object_camara->proj.izq = -0.1;
+    _object_camara->proj.der = 0.1;
+    _object_camara->proj.alto= 0.1;
+    _object_camara->proj.bajo = -0.1;
+    _object_camara->proj.cerca = 0.1;
+    _object_camara->proj.lejos = 1000.0;
+
+    vector3 cam_pos;
+    cam_pos.x = 5.0f;
+    cam_pos.y = 5.0f;
+    cam_pos.z = -3.0f;
+
+    vector3 cam_front;
+    cam_front.x = 0.0f;
+    cam_front.y = 0.0f;
+    cam_front.z = 0.0f;
+
+    vector3 cam_up;
+    cam_up.x = 0.0f;
+    cam_up.y = 1.0f;
+    cam_up.z = 0.0f;
+
+    create_camara(cam_pos, cam_front, cam_up, aux);
+
+    _first_camara = (camara*)malloc(sizeof(camara));
+    _first_camara = aux;
+
+    _selected_camara = _first_camara;
 }
+
