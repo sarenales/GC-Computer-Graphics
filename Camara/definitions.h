@@ -17,6 +17,9 @@
 #define KG_MSSG_INVALIDFILE                 "Ha habido algun problema con el fichero ..."
 #define KG_MSSG_EMPTYFILE                   "Este fichero esta vacio."
 #define KG_MSSG_FILEREAD                    "Problema al leer el fichero."
+#define KG_MSSG_NOOBJ                       "No hay ningun objeto cargado."
+#define KG_MSSG_NODELETE                    "No se puede borrar nada!!"
+#define KG_MSSG_NOCAM                       "No hay mas camaras cargas..."
 
 #define KG_STEP_MOVE                        5.0f
 #define KG_STEP_ROTATE                      10.0f
@@ -61,7 +64,6 @@
 #define GLOBAL                              0
 #define LOCAL                               1
 
-
 // modo
 #define OBJETO                              0
 #define CAMARA                              1
@@ -75,6 +77,7 @@
 // vista
 #define VUELO                               0
 #define ANALISIS                            1
+
 
 
 /** STRUCTURES **/
@@ -132,14 +135,23 @@ typedef struct elemM{
     struct elemM *sigPtr;
 } elemM;
 
-
+typedef struct proy{
+  //  GLdouble angulo;
+    GLdouble cerca;
+    GLdouble lejos;
+    GLdouble bajo;
+    GLdouble alto;
+    GLdouble izq;
+    GLdouble der;
+}proy;
 
 
 typedef struct camara{
-    GLdouble M[16];
+    GLdouble M[16];                     /* the csr matrix of the camera*/
+    GLdouble Mobj[16];                  /* the matrix of the obj asociated */
     GLdouble Minv[16];
     GLdouble projection[6];
-    int tipo;
+    int tipo_proyeccion;                /* projection type */
     GLint num_vertices;                 /* number of vertices in the camara*/
     vertex *vertex_table;               /* table of vertices */
     GLint num_faces;                    /* number of faces in the camara */
@@ -147,6 +159,7 @@ typedef struct camara{
     point3 min;                         /* coordinates' lower bounds */
     point3 max;                         /* coordinates' bigger bounds */
     struct camara *next;
+    proy proj;
 } camara;
 
 
