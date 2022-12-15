@@ -95,7 +95,7 @@ void keyboard(unsigned char key, int x, int y) {
         case 'f':// Carga de objeto desde el fichero
         case 'F':
             /*Ask for file*/
-           fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
+            fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
             printf("%s", KG_MSSG_SELECT_FILE);
             scanf("%s", fname);
             /*Allocate memory for the structure and read the file*/
@@ -120,7 +120,7 @@ void keyboard(unsigned char key, int x, int y) {
                     _selected_object = _first_object;
 
                      // al objeto tenemos que decirle que apunte uno nuevo
-                    auxiliar_object->mptr=(elemM*) malloc(sizeof(elemM)); // malloc devuelve un puntero. Un void pointer¿?
+                    auxiliar_object->mptr=(elemM*) malloc(sizeof(elemM)); // malloc devuelve un puntero. Un void pointer
 
                     // cargue identidad en model view
                     glMatrixMode(GL_MODELVIEW);  // applies subsequent matrix operations to the projection matiz stack
@@ -134,42 +134,9 @@ void keyboard(unsigned char key, int x, int y) {
       
         case 'N':
         case 'n': // anadir camara
-            auxiliar_camara = malloc( sizeof(camara) );
-            vector3* e = malloc( sizeof(vector3) );
-            e->x = 10;
-            e->y = 15;
-            e->z = 10;
-            elemM* m1 = malloc( sizeof(elemM) );
-            elemM* m2 = malloc( sizeof(elemM) );
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            gluLookAt(e->x,e->y,e->z,0,0,0,0,1,0);
-            glGetDoublev(GL_MODELVIEW_MATRIX,m1->M);
-            get_matriz_objeto(m1->M,e,m2->M);
-
-
-            for(i=0; i<16; i++){
-                auxiliar_camara->M[i] = m1->M[i];
-                auxiliar_camara->Mobj[i] = m2->M[i];
-            }
-            // auxiliar_camara->M = m1->M;
-            // auxiliar_camara->M = m2->M;
-            
-            auxiliar_camara->projection[0] = -0.1;
-            auxiliar_camara->projection[1] = 0.1;
-            auxiliar_camara->projection[2] = -0.1;
-            auxiliar_camara->projection[3] = 0.1;
-            auxiliar_camara->projection[4] = 0.1;
-            auxiliar_camara->projection[5] = 10000;
-            
-            cargar_obj_camara(auxiliar_camara);
-            
-            auxiliar_camara->next = _first_camara;
-            _first_camara = auxiliar_camara;
-            _selected_camara = _first_camara;
-            
-            if(vista == ANALISIS){
-                mirar_obj_selec();
+            add_camara();
+            if(modo == ANALISIS && _selected_camara!=NULL){
+                    centre_camera_to_obj(_selected_object);
             }
 		break;
         
@@ -179,40 +146,66 @@ void keyboard(unsigned char key, int x, int y) {
         
         case 9: /* <TAB> */
             // seleccionar siguiente obj o camara
-        if (_selected_object!=NULL){
-            _selected_object = _selected_object->next;
-            /*The selection is circular, thus if we move out of the list we go back to the first element*/
-            if (_selected_object == 0)
-                _selected_object = _first_object;
-            if(vista == ANALISIS)
-                mirar_obj_selec();
-        }else 
-            printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
+            if (_selected_object!=NULL){
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                     _selected_object = _selected_object->next;
+                    printf("Siguiente OBJETO... \n");
+                    /*The selection is circular, thus if we move out of the list we go back to the first element*/
+                    if (_selected_object == 0)
+                        _selected_object = _first_object;
+                    /*if(vista == ANALISIS && modo == CAMARA)
+                        centre_camera_to_obj(_selected_object);
+                    else if  (modo == CAMARAOBJETO){
+                    
+                    }*/
+                }                
+            }
+            else {
+                printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
+            }
         break;
+
+
+        /* Intercambiar de camara*/
+        case 'k': // Cambiar de camara entre camaras puras
+            if (_selected_camara!=NULL){
+                _selected_camara = _selected_camara->next;
+                printf("Siguiente CAMARA ... \n");
+                if(modo==CAMARA){
+                    if (_selected_camara == 0) 
+                        _selected_camara = _first_camara;
+                    if(vista == ANALISIS)
+                        mirar_obj_selec();            
+                }
+            }else 
+                printf("%s: %s\n", fname, KG_MSSG_NOCAM);
+        break;
+
+        
 
         case 127: /* <SUPR> */
             // elimina obj seleccionado
             if(_selected_object !=0 ){
-                if (_selected_object == _first_object){
-                     _first_object = _first_object->next;
-                    
-                    // a parte de borrar objto tambn su memoria asociada 
-                    // tabla_vertices, tabla_poligonos y puntero matrices
-                    for(i=0; i< _selected_object->num_faces; i++){
-                        face poligono = _selected_object->face_table[i];
-                        free(poligono.vertex_table);
-                        (_selected_object->face_table[i]);
+                    if (_selected_object == _first_object){
+                         _first_object = _first_object->next;
+                        
+                        // a parte de borrar objto tambn su memoria asociada 
+                        // tabla_vertices, tabla_poligonos y puntero matrices
+                        for(i=0; i< _selected_object->num_faces; i++){
+                            face poligono = _selected_object->face_table[i];
+                            free(poligono.vertex_table);
+                            (_selected_object->face_table[i]);
+                        }
+                        free(_selected_object);
+                         _selected_object = _first_object;
+                    } else {
+                        auxiliar_object = _first_object;
+                        while (auxiliar_object->next != _selected_object)
+                            auxiliar_object = auxiliar_object->next;
+                        auxiliar_object->next = _selected_object->next;
+                        free(_selected_object);
+                        _selected_object = auxiliar_object;
                     }
-                    free(_selected_object);
-                     _selected_object = _first_object;
-                } else {
-                    auxiliar_object = _first_object;
-                    while (auxiliar_object->next != _selected_object)
-                        auxiliar_object = auxiliar_object->next;
-                    auxiliar_object->next = _selected_object->next;
-                    free(_selected_object);
-                    _selected_object = auxiliar_object;
-                }
                 if (vista == ANALISIS){
                     mirar_obj_selec();
                 }
@@ -329,6 +322,23 @@ void keyboard(unsigned char key, int x, int y) {
             }
         break;
         
+        case 'K': // K  intercambiar de camara pura a camara asociada a obj y viceversa
+            // visualizar desde el objeto
+            if (_selected_object!=NULL){
+                if(modo != CAMARAOBJETO){
+                    printf("Modo especial, ahora visualizamos lo que el objeto seleccionado ve.\n");
+                    printf("Modo CAMARAOBJETO \n");
+                    printf("Pulsa K, O, (I) o C para salir. \n");
+                    modo = CAMARAOBJETO;
+                }
+                else{
+                    modo = CAMARA;
+                    printf("Se aplica las transformaciones al CAMARA.\n");
+                }
+            }else 
+                printf("%s: %s and %s \n", fname, KG_MSSG_NOOBJ, KG_MSSG_NOCAM);
+        break;
+        
         
         
         
@@ -361,35 +371,43 @@ void keyboard(unsigned char key, int x, int y) {
         /* sistema de referencia, referencia || vista camara, vuelo o analisis, vista */
         case 'G':
         case 'g': 
-            if (modo == CAMARA){
-                if(vista != ANALISIS){
-                    vista = ANALISIS;
-                    printf("Vista de la camara: Analisis\n");
-                    mirar_obj_selec();
+            if(_selected_object != NULL){
+                if (modo == CAMARA){
+                    if(vista != ANALISIS){
+                        vista = ANALISIS;
+                        printf("Vista de la camara: ANALISIS\n");
+                        mirar_obj_selec();
+                    }
                 }
-            }
-            else if(modo == OBJETO){
-                if(referencia != GLOBAL){
-                    referencia = GLOBAL;
-                    printf("Sistema de referencia: Global\n");
+                else if(modo == OBJETO){
+                    if(referencia != GLOBAL){
+                        referencia = GLOBAL;
+                        printf("Sistema de referencia: GLOBAL\n");
+                    }
                 }
-            }
+            }else 
+                printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
+            
     	break;
             
         case 'L':
         case 'l':
-            if (modo == CAMARA){
-                if(vista != VUELO){
-                    vista = VUELO;
-                    printf("Vista de la camara: Vuelo\n");
+            if(_selected_object != NULL){
+                if (modo == CAMARA){
+                    if(vista != VUELO){
+                        vista = VUELO;
+                        printf("Vista de la camara: VUELO\n");
+                    }
                 }
-            }
-            else if (modo == OBJETO){
-                if(referencia != LOCAL){
-                    referencia = LOCAL;
-                    printf("Sistema de referencia: Local\n");
+                else if (modo == OBJETO){
+                    if(referencia != LOCAL){
+                        referencia = LOCAL;
+                        printf("Sistema de referencia: LOCAL\n");
+                    }
                 }
-            }
+            }else
+                printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
+           
     	break;
         
         
@@ -398,71 +416,89 @@ void keyboard(unsigned char key, int x, int y) {
         
         case 'Z':
         case 'z': //  (Z,z) Deshacer
-            if(_selected_object != NULL)
-                if(_selected_object->mptr->sigPtr != NULL)
-                    _selected_object->mptr = _selected_object->mptr->sigPtr;
-            printf("Deshaciendo...\n");
+           if(_selected_object != NULL){
+                if(modo == OBJETO){
+                    if(_selected_object->mptr->sigPtr != NULL)
+                        _selected_object->mptr = _selected_object->mptr->sigPtr;
+                    printf("Deshaciendo OBJ...\n");
+                }else if(modo == CAMARA){
+                    if(_selected_camara->next != NULL)
+                        _selected_camara = _selected_camara->next;
+                    printf("Deshaciendo CAM...\n");
+                    
+                }
+            }
         break;
         
         
         
         
-        /* Intercambiar de camara*/
-        case 'k': // Cambiar de camara entre camaras puras
-            if (_selected_camara!=NULL){
-                _selected_camara = _selected_camara->next;
-                if(modo==CAMARA){
-                    if (_selected_camara == 0) _selected_camara = _first_camara;
-                    if(vista == ANALISIS)
-                        mirar_obj_selec();            
-                }
-            }else 
-                printf("%s: %s\n", fname, KG_MSSG_NOCAM);
-        break;
-
-        case 'K': // intercambiar de camara pura a camara asociada a obj y viceversa
-            // visualizar desde el objeto
-            if (_selected_camara!=NULL && _selected_object!=NULL){
-                if(modo != CAMARAOBJETO){
-                    modo = CAMARAOBJETO;
-                    printf("Punto de vista del objeto.\n");
-                }
-                else{
-                    modo = CAMARA;
-                    printf("Modo Camara. \n");
-                }
-            }else 
-                printf("%s: %s and %s \n", fname, KG_MSSG_NOOBJ, KG_MSSG_NOCAM);
-        break;
-        
-        
+    
         
         
         case 'p':
         case 'P':
             if (_selected_object != NULL){
                 proyeccion = 1 - proyeccion;
-                if(proyeccion){
+                if(_selected_camara->tipo_proyeccion == PERSPECTIVA){
                     printf("Modo de vista: Perspectiva\n");
-                    _selected_camara->projection[0] = -0.1;
+                   /* _selected_camara->projection[0] = -0.1;
                     _selected_camara->projection[1] = 0.1;
                     _selected_camara->projection[2] = -0.1;
                     _selected_camara->projection[3] = 0.1;
                     _selected_camara->projection[4] = 0.1;
-                    _selected_camara->projection[5] = 10000;
+                    _selected_camara->projection[5] = 10000;*/
+                    _selected_camara->proj.izq = -5.0;
+                    _selected_camara->proj.der = 5.0;
+                    _selected_camara->proj.alto = 5.0;
+                    _selected_camara->proj.bajo = -5.0;
+                    _selected_camara->proj.cerca = 0;
+                    _selected_camara->proj.lejos = 1000.0;
                 }
-                else{
+                else if(_selected_camara->tipo_proyeccion == PARALELO){
                     printf("Modo de vista: Paralelo\n");
-                    _selected_camara->projection[0] = _ortho_x_min;
+                   /* _selected_camara->projection[0] = _ortho_x_min;
                     _selected_camara->projection[1] = _ortho_x_max;
                     _selected_camara->projection[2] = _ortho_y_min;
                     _selected_camara->projection[3] = _ortho_y_max;
                     _selected_camara->projection[4] = 0;
-                    _selected_camara->projection[5] = _ortho_z_max;
+                    _selected_camara->projection[5] = _ortho_z_max;*/
+                    _selected_camara->proj.izq = -0.1;
+                    _selected_camara->proj.der = 0.1;
+                    _selected_camara->proj.alto = 0.1;
+                    _selected_camara->proj.bajo = -0.1;
+                    _selected_camara->proj.cerca = 0.1;
+                    _selected_camara->proj.lejos = 1000.0;
                 }
             }else{
                 printf("%s: %s \n", fname, KG_MSSG_NOOBJ);
             }
+            
+            
+            /*
+                if(modo != CAMARAOBJETO){
+                _selected_camara->tipo_proyeccion = (_selected_camara->tipo_proyeccion +1)%2;
+                
+                if(_selected_camara->tipo_proyeccion == PARALELO){
+                    printf("proyeccion paralela. \n");
+                    _selected_camara->proj.izq = -5.0;
+                    _selected_camara->proj.der = 5.0;
+                    _selected_camara->proj.alto = 5.0;
+                    _selected_camara->proj.bajo = -5.0;
+                    _selected_camara->proj.cerca = 0;
+                    _selected_camara->proj.lejos = 1000.0;
+                }else if(_selected_camara->tipo_proyeccion == PERSPECTIVA){
+                    printf("proyeccion perspectiva. \n");
+                    _selected_camara->proj.izq = -0.1;
+                    _selected_camara->proj.der = 0.1;
+                    _selected_camara->proj.alto = 0.1;
+                    _selected_camara->proj.bajo = -0.1;
+                    _selected_camara->proj.cerca = 0.1;
+                    _selected_camara->proj.lejos = 1000.0;
+                }
+                
+            }
+            */
         break;
 
 
@@ -478,7 +514,6 @@ void keyboard(unsigned char key, int x, int y) {
         /*In case we have do any modification affecting the displaying of the object, we redraw them*/
         glutPostRedisplay();
 }
-
 /**
  * @brief Callback function to control the special keys
  * @param key Key that has been pressed
@@ -496,20 +531,24 @@ void keyboardspecial(int key, int x, int y){
     if(_selected_object!=NULL){
         glMatrixMode(GL_MODELVIEW);
         
-        if(modo == OBJETO) // visualise obj
+        if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
             m = _selected_object->mptr;
-            if(referencia == 0)         // Referencia LOCAL
+            
+            if(referencia == LOCAL){         // Referencia LOCAL
                glLoadMatrixd(m->M);
-            if(referencia == 1)         // referencia GLOBAL
+            }if(referencia ==GLOBAL){        // referencia GLOBAL
                glLoadIdentity();
+            }
         }
         else if(modo == CAMARA) // visualice camara
         {
-            if(vista == 0)         // Referenciavista modo vuelo
+            if(vista == VUELO)         // Referenciavista modo vuelo
                 glLoadMatrixd(_selected_camara->M);
-            if(vista == 1)          // modo vuelo 
+            if(vista == ANALISIS){          // modo analisis 
                glLoadIdentity();
+               mirar_obj_selec();
+            }
         }
         
         
@@ -578,12 +617,13 @@ void keyboardspecial(int key, int x, int y){
                 printf("REPAG \n");
                 break;
         }
-        if(modo == OBJETO) // visualise obj
+        if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
-            if(referencia == 1)         // Referencia GLOBAL
+            if(referencia == GLOBAL)         // Referencia GLOBAL
                 glMultMatrixd(m->M);
                         
-            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);    
+            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada); 
+            
             sig_matriz = malloc(sizeof (elemM));            
             for(i =0; i<16; i++)
                 sig_matriz->M[i] = matriz_rotada[i];
@@ -595,7 +635,7 @@ void keyboardspecial(int key, int x, int y){
         }
         else if(modo == CAMARA)
         {
-            if(vista == 1)         // Referencia  modo vuelo
+            if(vista == ANALISIS)       
                 glMultMatrixd(_selected_camara->M);
         
             glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
