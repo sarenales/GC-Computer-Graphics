@@ -16,21 +16,22 @@ GLdouble _ortho_x_min,_ortho_x_max;         /*Variables for the control of the o
 GLdouble _ortho_y_min ,_ortho_y_max;        /*Variables for the control of the orthographic projection*/
 GLdouble _ortho_z_min,_ortho_z_max;         /*Variables for the control of the orthographic projection*/
 
-object3d * _first_object= 0;                /*List of objects*/
+object3d * _first_object = 0;               /*List of objects*/
 object3d * _selected_object = 0;            /*Object currently selected*/
-camara *_first_camara=0;
-camara *_selected_camara=0;
+camara *_first_camara = 0;
+camara *_selected_camara = 0;
+camara *_object_camara = 0;
 
-elemM *m1=0;
-elemM *m2=0;
-
-
-int referencia = 0;                         /*global, local --> para obj*/
-int modo = 0;                               /*obj, cam, camaraobj, iluminacion*/
+elemM *m1 = 0;
+elemM *m2 = 0;
 
 
-int proyeccion=0;                           /* perspectiva, paralela*/
-int vista=1;                                /* vuelo, analisis --> para cam*/
+int referencia = GLOBAL;                    /*global, local --> para obj*/
+int modo = OBJETO;                          /*obj, cam, camaraobj, iluminacion*/
+
+
+int proyeccion = PERSPECTIVA;               /* perspectiva, paralela*/
+int vista = VUELO;                          /* vuelo, analisis --> para cam*/
 
 
 
@@ -55,46 +56,46 @@ void initialization (){
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    // glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
-    // _first_camara=_selected_camara;
+    glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    _first_camara=_selected_camara;
     
     
     // _first_camara =(camara*) malloc(sizeof(camara));
-    printf("MAIN llega aqui 1\n");
+    // printf("MAIN llega aqui 1\n");
    
-    vector3* a;
-    a->x = 5;
-    a->y = 5;
-    a->z = 5;
+    // vector3* a;
+    // a->x = 5;
+    // a->y = 5;
+    // a->z = 5;
     
-    m1 =(elemM*) malloc( sizeof(elemM));
-    m2 =(elemM*) malloc( sizeof(elemM));
+    // m1 =(elemM*) malloc( sizeof(elemM));
+    // m2 =(elemM*) malloc( sizeof(elemM));
 
-    printf("MAIN llega aqui 2\n");
+    // printf("MAIN llega aqui 2\n");
     
     
     
-    // printf("llega aqui 2.1\n");
-     // glLoadIdentity();
-    printf("MAIN no le gusta el glulookat \n");
-    gluLookAt(a->x,a->y,a->z,0,0,0,0,1,0);
-    //gluLookAt(5,5,5,0,0,0,0,1,0);
-    printf("MAIN llega aqui 3:  le gusta el glulookat \n");
+    //printf("llega aqui 2.1\n");
+    // glLoadIdentity();
+    // printf("MAIN no le gusta el glulookat \n");
+    // gluLookAt(a->x,a->y,a->z,0,0,0,0,1,0);
+    // gluLookAt(5,5,5,0,0,0,0,1,0);
+    // printf("MAIN llega aqui 3:  le gusta el glulookat \n");
     
-    glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
-    _first_camara=_selected_camara;
-    printf("MAIN llega aqui 4\n");
+    // glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    // _first_camara=_selected_camara;
+    // printf("MAIN llega aqui 4\n");
     
-    get_matriz_objeto(m1->M, a, m2->M);
-    printf("MAIN llega aqui 5\n");
+    // get_matriz_objeto(m1->M, a, m2->M);
+    // printf("MAIN llega aqui 5\n");
     
-    _selected_camara->projection[0] = -0.1;
-    _selected_camara->projection[1] = 0.1;
-    _selected_camara->projection[2] = -0.1;
-    _selected_camara->projection[3] = 0.1;
-    _selected_camara->projection[4] = 0.1;
-    _selected_camara->projection[5] = 1000;
-    printf("MAIN llega aqui 6\n");
+    // _selected_camara->projection[0] = -0.1;
+    // _selected_camara->projection[1] = 0.1;
+    // _selected_camara->projection[2] = -0.1;
+    // _selected_camara->projection[3] = 0.1;
+    // _selected_camara->projection[4] = 0.1;
+    // _selected_camara->projection[5] = 1000;
+    // printf("MAIN llega aqui 6\n");
     
     // cargar_obj_camara(_selected_camara);
     // _selected_camara->next = 0;
@@ -129,6 +130,8 @@ int main(int argc, char** argv) {
 
     /* this initialization has to be AFTER the creation of the window */
     initialization();
+    
+    inicial_camaras();
 
     /* start the main loop */
     glutMainLoop();
