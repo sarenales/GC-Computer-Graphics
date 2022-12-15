@@ -4,8 +4,10 @@
 #include <GL/glu.h>
 #include "definitions.h"
 
+void obtenerMCSR(GLdouble *M, GLdouble *MCSR);
+GLdouble producto_escalar();
+int poligono_delantero(object3d *o, face f);
 void display(void);
 void reshape(int width, int height);
-int poligono_delanterp(object3d *o, face f);
 
 #endif // DISPLAY_H
