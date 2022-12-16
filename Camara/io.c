@@ -60,6 +60,14 @@ void print_help(){
     
     printf("<O> \t\t Aplicar tranformaciones al objeto seleccionado (valor por defecto)(desactiva camara y luz)\n");
     printf("<C> \t\t Aplicar transformaciones a la camara actual (desactiva objeto y luz)\n");
+    
+    printf("FUNCIONES DE CAMARA \n");
+    printf("<K>\t\t  Intercambiar de cámara pura a cámara asociada a objeto.\n");
+    printf("<k>\t\t  Cambiar de camara.");
+    printf("<N,n>\t\t  Anadir una camara.\n");
+    printf("<G,g>\t\t  Camara modo Analisis.\n");
+    printf("<L,l>\t\t  Camara modo Vuelo.\n");
+    printf("<P,p>\t\t  Cambiar de tipo de proyeccion: perspectiva/paralela .\n");
 
     printf("<UP> \t\t Trasladar +Y; Escalar + Y; Rotar +X\n");
     printf("<DOWN> \t\t Trasladar -Y; Escalar - Y;  Rotar -X\n");
@@ -147,7 +155,7 @@ void keyboard(unsigned char key, int x, int y) {
         case 9: /* <TAB> */
             // seleccionar siguiente obj o camara
             if (_selected_object!=NULL){
-                if(modo == OBJETO || modo == CAMARAOBJETO){
+               // if(modo == OBJETO || modo == CAMARAOBJETO){
                      _selected_object = _selected_object->next;
                     printf("Siguiente OBJETO... \n");
                     /*The selection is circular, thus if we move out of the list we go back to the first element*/
@@ -158,7 +166,7 @@ void keyboard(unsigned char key, int x, int y) {
                     else if  (modo == CAMARAOBJETO){
                     
                     }*/
-                }                
+                //}                
             }
             else {
                 printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
