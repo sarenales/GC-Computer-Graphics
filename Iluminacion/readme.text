@@ -1,3 +1,24 @@
 4ta y última parte del proyecto. 
 
 Proyecto finalizado, supuestamente.
+
+
+Objetivo
+Poder tener en cuenta la interacción de las fuentes de iluminación en la escena
+
+Bases
+Para poder simular los efectos de las luces hay que establecer, por un lado, las propiedades de los materiales de los objetos, y por otro lado, 
+las propiedades de las fuentes de luz. Además, para poder calcular los efectos de las fuentes de luz,  hacen falta los vectores normales de los objetos,
+por lo que hay que calcularlos. Las tareas a realizar son:
+
+Definir las luces. Cada luz tendrá sus propiedades y hay que dar la posibilidad de encender/apagar cada una de ellas: las teclas f1,f2, ... f8 
+encenderán apagarán cada una de las luces que OpenGL nos permite activar/desactivar.
+Hay que posicionar de forma adecuada las luces en la escena. Como mínimo hay que definir una luz de tipo bombilla (posicional correspondiente a 1) 
+que se podrá mover en el escenario (traslaciones), una luz de tipo direccional (sol, correspondiente a tecla 2) que se podrá rotar  y una luz de tipo foco 
+que irá asociada al objeto seleccionado (haciendo de faro del objeto y que se enciende/apaga con tecla 3). Esta tercera luz deberá seguir al objeto al que está asociado,
+por lo que si el objeto se mueve o gira, la luz deberá actuar en consecuencia. La tecla 4 encenderá/apagará un foco asociado a la cámara
+Cada objeto tendrá sus propiedades (material).
+Hay que calcular el vector normal de cada polígono, y basandonos en estos vectores hay que calcular el vector normal de cada vértice.
+Se puede dar la posibilidad de modificar las propiedades de las luces, además de su posición o dirección.
+Hay que definir la estructura necesaria para cada luz, y habrá que añadir al objeto los campos necesarios para que guarde las caracteristicas del material. 
+El material se aplicará a todo el objeto.
