@@ -383,8 +383,9 @@ void keyboard(unsigned char key, int x, int y) {
                 if (modo == CAMARA){
                     if(vista != ANALISIS){
                         vista = ANALISIS;
+                        _selected_camara->vistacam = ANALISIS;
                         printf("Vista de la camara: ANALISIS\n");
-                        mirar_obj_selec();
+                        centre_camera_to_obj(_selected_object);
                     }
                 }
                 else if(modo == OBJETO){
@@ -404,6 +405,7 @@ void keyboard(unsigned char key, int x, int y) {
                 if (modo == CAMARA){
                     if(vista != VUELO){
                         vista = VUELO;
+                        _selected_camara->vistacam = VUELO;
                         printf("Vista de la camara: VUELO\n");
                     }
                 }
@@ -430,7 +432,7 @@ void keyboard(unsigned char key, int x, int y) {
                         _selected_object->mptr = _selected_object->mptr->sigPtr;
                     printf("Deshaciendo OBJ...\n");
                 }else if(modo == CAMARA){
-                    if(_selected_camara->next != NULL)
+                    if(_selected_camara->next != NULL) //TODO cuidau
                         _selected_camara = _selected_camara->next;
                     printf("Deshaciendo CAM...\n");
                     
@@ -643,9 +645,12 @@ void keyboardspecial(int key, int x, int y){
         }
         else if(modo == CAMARA)
         {
-            if(vista == ANALISIS)       
-                glMultMatrixd(_selected_camara->M);
-        
+            if(vista == ANALISIS){
+                // glMultMatrixd(_selected_camara->M);
+                // centre_camera_to_obj(_selected_object);
+                mirar_obj_selec();
+                modo_analisis(_selected_camara, _selected_object);
+            }
             glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
         
             glutPostRedisplay();
