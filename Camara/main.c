@@ -53,14 +53,14 @@ void initialization (){
     /*Definition of the background color*/
     glClearColor(KG_COL_BACK_R, KG_COL_BACK_G, KG_COL_BACK_B, KG_COL_BACK_A);
 
-    _selected_camara =(camara*) malloc(sizeof(camara));
+    // _selected_camara =(camara*) malloc(sizeof(camara));
     
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
-    _selected_camara->M[14] = 10;
-    _first_camara=_selected_camara;
-    inicial_camaras(_selected_camara);
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
+    // glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    // _selected_camara->M[14] = 10;
+    // _first_camara=_selected_camara;
+    // inicial_camaras(_selected_camara);
     
     /*Definition of the method to draw the objects*/
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
 
     /* this initialization has to be AFTER the creation of the window */
     initialization();
-    //load_presentation();
-    //default_cameras();
+    load_presentation();
+    default_cameras();
 
     /* start the main loop */
     glutMainLoop();
