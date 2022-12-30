@@ -7,6 +7,7 @@
 
 #include "definitions.h"
 #include "load_obj.h"
+#include "display.h"
 
 extern camara *_first_camara;
 extern camara *_selected_camara;
@@ -20,71 +21,92 @@ extern int referencia;
 extern int modo;
 
 extern int vista;      
-extern int proyeccion;                
+extern int proyeccion; 
 
-void get_matriz_objeto(GLdouble* m1, vector3* e,GLdouble* m2){
-    for(int i = 0; i < 3; i++){
-    	for (int j = 0; j < 3;j++){
-    			m2[i+4*j] = m1[4*i+j];
-    	}
-    }
-    m2[3] = 0;
-    m2[7] = 0;
-    m2[11] = 0;
-    m2[12] = e->x;
-    m2[13] = e->y;
-    m2[14] = e->z;
-    m2[15] = 1;
-}
-void cargar_obj_camara(camara *cam){
-    object3d auxiliar_object;
-    
-    read_wavefront("camara.obj", &auxiliar_object);
+/**
+ * obtenemos la matriz de cambio de sistema de referencia a partir de la de objeto
+ * @param c la camara
+ */
+void matriz_inversa(camara *c){
+    c->M[0] = c->Minv[0];
+    c->M[4] = c->Minv[1];
+    c->M[8] = c->Minv[2];
+    c->M[12] = (-1)*(c->Minv[12] * c->Minv[0] +
+                  c->Minv[13] * c->Minv[1] +
+                  c->Minv[14] * c->Minv[2]);
 
-    cam->face_table = auxiliar_object.face_table;
-    cam->num_faces = auxiliar_object.num_faces;
-    cam->vertex_table = auxiliar_object.vertex_table;
-    cam->num_vertices = auxiliar_object.num_vertices;
-    cam->max = auxiliar_object.max;
-    cam->min = auxiliar_object.min;
+    c->M[1] = c->Minv[4];
+    c->M[5] = c->Minv[5];
+    c->M[9] = c->Minv[6];
+    c->M[13] = -(c->Minv[12] * c->Minv[4] +
+                 c->Minv[13] * c->Minv[5] +
+                 c->Minv[14] * c->Minv[6]);
 
-}
+    c->M[2] = c->Minv[8];
+    c->M[6] = c->Minv[9];
+    c->M[10] = c->Minv[10];
+    c->M[14] = (-1)*(c->Minv[12] * c->Minv[8] +
+                 c->Minv[13] * c->Minv[9] +
+                 c->Minv[14] * c->Minv[10]);
 
-void mirar_obj_selec(){
+    c->M[3] = 0;
+    c->M[7] = 0;
+    c->M[11] = 0;
+    c->M[15] = 1;
+}               
+
+
+void add_camera_mode_obj(object3d *obj)
+{
+
+    _object_camara->Minv[0] = obj->mptr->M[0];
+    _object_camara->Minv[1] = obj->mptr->M[1];
+    _object_camara->Minv[2] = obj->mptr->M[2];
+    _object_camara->Minv[3] = 0;
+
+    _object_camara->Minv[4] = obj->mptr->M[4];
+    _object_camara->Minv[5] = obj->mptr->M[5];
+    _object_camara->Minv[6] = obj->mptr->M[6];
+    _object_camara->Minv[7] = 0;
+
+    _object_camara->Minv[8] = obj->mptr->M[8];
+    _object_camara->Minv[9] = obj->mptr->M[9];
+    _object_camara->Minv[10] = (-1) * (obj->mptr->M[10]);
+    _object_camara->Minv[11] = 0;
+
+    _object_camara->Minv[12] = obj->mptr->M[12];
+    _object_camara->Minv[13] = obj->mptr->M[13];
+    _object_camara->Minv[14] = obj->mptr->M[14];
+    _object_camara->Minv[15] = 1;
+
+
+    matriz_inversa(_object_camara);
+	//obtenerMCSR(_object_camara->M, _object_camara->Minv);
 	
-		point3 at, E;
-		vector3 V;
-		
-		at.x = _selected_object->mptr->M[12];
-		at.y = _selected_object->mptr->M[13];
-		at.z = _selected_object->mptr->M[14];
-		
-		// eje de la camara
-		V.x = _selected_camara->M[4];
-		V.y = _selected_camara->M[5];
-		V.z = _selected_camara->M[6];
-		
-		glLoadIdentity();
-		glTranslated(at.x, at.y, at.z);
-		glRotated(V.x, V.y, V.z, 0);
-		glTranslated(-(at.x),-(at.y),-(at.y));
-		glMultMatrixd(_selected_camara->M);
-		glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);
-		
-		// vector3 obj,cam;
-        
-		// obj.x = _selected_object->mptr->M[12];
-		// obj.y = _selected_object->mptr->M[13];
-		// obj.z = _selected_object->mptr->M[14];
-        
-		// cam.x = _selected_camara->M[12];
-		// cam.y = _selected_camara->M[13];
-		// cam.z = _selected_camara->M[14];
-        
-		// glMatrixMode(GL_MODELVIEW);
-		// glLoadIdentity();
-		// gluLookAt(cam.x,cam.y,cam.z,obj.x,obj.y,obj.z,0,1,0);
-		// glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+}
+
+
+void modo_analisis(int x, int y){
+
+    if(_selected_object != 0) {
+        GLdouble px, py, pz, distance;
+
+        px = _selected_object->mptr->M[12] - _selected_camara->Minv[12];
+        py = _selected_object->mptr->M[13] - _selected_camara->Minv[13];
+        pz = _selected_object->mptr->M[14] - _selected_camara->Minv[14];
+
+        distance = sqrt(pow(px, 2) + pow(py, 2) + pow(pz, 2));
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(_selected_camara->Minv);
+        glTranslated(0, 0, -distance);
+        glRotated(8.0f, -x, -y, 0);
+        glTranslated(0, 0, distance);
+        glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+
+        matriz_inversa(_selected_camara);
+    }
+
 }
 
 
@@ -149,37 +171,39 @@ void create_camara(vector3 pos_camara, vector3 front_cam, vector3 up_cam,camara 
 	c->proj.der = 0.1;
 	c->proj.alto = 0.1;
 	c->proj.bajo = -0.1;
-	c->proj.lejos = 1000.0;
+	c->proj.lejos = 10000.0;
 	c->proj.cerca = 0.1;
 
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(pos_camara.x, pos_camara.y, pos_camara.z,
+	/*gluLookAt(pos_camara.x, pos_camara.y, pos_camara.z,
 				front_cam.x, front_cam.y, front_cam.z,
 				up_cam.x, up_cam.y, up_cam.z);
-				
+	*/
 	glGetDoublev(GL_MODELVIEW_MATRIX, c->M);
 	
-	c->Minv[0] = c->M[0];
-	c->Minv[1] = c->M[4];
-    c->Minv[2] = c->M[8];
-    c->Minv[3] = 0;
+	obtenerMCSR(c->M, c->Minv);
+	
+	// c->Minv[0] = c->M[0];
+	// c->Minv[1] = c->M[4];
+    // c->Minv[2] = c->M[8];
+    // c->Minv[3] = 0;
 
-    c->Minv[4] = c->M[1];
-    c->Minv[5] = c->M[5];
-    c->Minv[6] = c->M[9];
-    c->Minv[7] = 0;
+    // c->Minv[4] = c->M[1];
+    // c->Minv[5] = c->M[5];
+    // c->Minv[6] = c->M[9];
+    // c->Minv[7] = 0;
 
-    c->Minv[8] = c->M[2];
-    c->Minv[9] = c->M[6];
-    c->Minv[10] = c->M[10];
-    c->Minv[11] = 0;
+    // c->Minv[8] = c->M[2];
+    // c->Minv[9] = c->M[6];
+    // c->Minv[10] = c->M[10];
+    // c->Minv[11] = 0;
 
-    c->Minv[12] = pos_camara.x;
-    c->Minv[13] = pos_camara.y;
-    c->Minv[14] = pos_camara.z;
-    c->Minv[15] = 1;
+    // c->Minv[12] = pos_camara.x;
+    // c->Minv[13] = pos_camara.y;
+    // c->Minv[14] = pos_camara.z;
+    // c->Minv[15] = 1;
 	
 
 }
@@ -197,7 +221,7 @@ void add_camara(){
 	vector3 pos_cam;
 	pos_cam.x = 5.0;
 	pos_cam.y = 5.0;
-	pos_cam.z = -3.0;
+	pos_cam.z = 0.0;
 	
 	
 	vector3 front_cam;
@@ -215,20 +239,53 @@ void add_camara(){
 	add_camara_to_list(c);	
 }
 
-void inicial_camaras(){
+/**
+ * Obtenemos la matriz de objeto para una nueva cámara
+ * @param obj el objeto
+ */
+void add_camara_mode_obj(object3d *obj)
+{
+
+    _object_camara->Minv[0] = obj->mptr->M[0];
+    _object_camara->Minv[1] = obj->mptr->M[1];
+    _object_camara->Minv[2] = obj->mptr->M[2];
+    _object_camara->Minv[3] = 0;
+
+    _object_camara->Minv[4] = obj->mptr->M[4];
+    _object_camara->Minv[5] = obj->mptr->M[5];
+    _object_camara->Minv[6] = obj->mptr->M[6];
+    _object_camara->Minv[7] = 0;
+
+    _object_camara->Minv[8] = obj->mptr->M[8];
+    _object_camara->Minv[9] = obj->mptr->M[9];
+    _object_camara->Minv[10] = (-1)* (obj->mptr->M[10]);
+    _object_camara->Minv[11] = 0;
+
+    _object_camara->Minv[12] = obj->mptr->M[12];
+    _object_camara->Minv[13] = obj->mptr->M[13];
+    _object_camara->Minv[14] = obj->mptr->M[14];
+    _object_camara->Minv[15] = 1;
+
+
+    matriz_inversa(_object_camara);
+}
+
+/**
+ * Método para inicializar todas las cámaras
+ */
+void default_cameras(){
 
 
     camara *aux = (camara*)malloc(sizeof(camara));
 
-    _object_camara = (camara*)malloc(sizeof(camara));
-    
-	_object_camara->tipo_proyeccion = PERSPECTIVA;
+    _object_camara = (camara*) malloc(sizeof(camara));
+    _object_camara->tipo_proyeccion = PERSPECTIVA;
 	
-    //_object_camara->proj = (proy*)malloc(sizeof (proy));
-    _object_camara->proj.izq = -0.1;
+   // _object_camara->proj = (proy*)malloc(sizeof (proy));
+    _object_camara->proj.izq = (-1)*(0.1);
     _object_camara->proj.der = 0.1;
-    _object_camara->proj.alto= 0.1;
-    _object_camara->proj.bajo = -0.1;
+    _object_camara->proj.alto = 0.1;
+    _object_camara->proj.bajo = (-1)*(0.1);
     _object_camara->proj.cerca = 0.1;
     _object_camara->proj.lejos = 1000.0;
 
@@ -254,4 +311,3 @@ void inicial_camaras(){
 
     _selected_camara = _first_camara;
 }
-
