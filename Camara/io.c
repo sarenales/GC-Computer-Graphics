@@ -554,33 +554,22 @@ void keyboardspecial(int key, int x, int y){
     char* fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
     int read = 0;
     GLdouble wd,he,midx,midy;
-    GLdouble matriz_rotada[16];
+    GLdouble matriz_rotada[16], m_aux[16];
     elemM *m, *sig_matriz;
 
     if(_selected_object!=NULL){
-        glMatrixMode(GL_MODELVIEW);
-        if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
-        {
-            m = _selected_object->mptr;
-            if(referencia == LOCAL){         // Referencia LOCAL
-               glLoadMatrixd(m->M);
-            }if(referencia ==GLOBAL){        // referencia GLOBAL
-               glLoadIdentity();
-            }
-        }
-        else if(modo == CAMARA) // visualice camara
-        {
-            if(vista == VUELO)         // Referenciavista modo vuelo
-                glLoadMatrixd(_selected_camara->M);
-            if(vista == ANALISIS){          // modo analisis 
-               glLoadIdentity();
-               //mirar_obj_selec();
-            }
-        }
         
         switch(key){
             case 101: // UP
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
+                    
+                    
                     if(movimiento == TRASLADAR){
                         glTranslated(0,1,0);
                     }else if(movimiento == ROTAR){
@@ -588,25 +577,41 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(1,1.1,1);
                     }
+                    
+                    
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,1,0,0);
+                        if(vista == VUELO){
+                           glTranslated(1,0,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(1,0);
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
+                        if(vista == VUELO){
                            glRotated(10,1,0,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(1,0);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto -= 0.01;
                         _selected_camara->proj.bajo += 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -617,6 +622,13 @@ void keyboardspecial(int key, int x, int y){
                 
             case 103: // DOWN
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
+                    
+                    
                     if(movimiento == TRASLADAR){
                         glTranslated(0,-1,0);
                     }else if(movimiento == ROTAR){
@@ -624,25 +636,40 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(1,0.9,1);
                     }
+                    
+                    
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,-1,0,0);
+                        if(vista == VUELO){
+                           glTranslated(0,-1,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(-1,0);
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
+                        if(vista == VUELO){
                            glRotated(10,-1,0,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(-1,0);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto += 0.01;
                         _selected_camara->proj.bajo -= 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -653,6 +680,11 @@ void keyboardspecial(int key, int x, int y){
 
             case 100: //LEAFT
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
                     if(movimiento == TRASLADAR){
                         glTranslated(-1,0,0);
                     }else if(movimiento == ROTAR){
@@ -660,25 +692,38 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(0.9,1,1);
                     }
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,0,-1,0);
+                        if(vista == VUELO){
+                           glTranslated(-1,0,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,1);
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
+                        if(vista == VUELO){
                            glRotated(10,0,-1,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,1);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto += 0.01;
                         _selected_camara->proj.bajo -= 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -688,6 +733,11 @@ void keyboardspecial(int key, int x, int y){
 
             case 102: //RIGHT
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
                     if(movimiento == TRASLADAR){
                         glTranslated(1,0,0);
                     }else if(movimiento == ROTAR){
@@ -695,25 +745,38 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(1.1,1,1);
                     }
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,0,1,0);
+                        if(vista == VUELO){
+                           glTranslated(1,0,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,-1);
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
+                        if(vista == VUELO){
                            glRotated(10,0,1,0);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,-1);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto += 0.01;
                         _selected_camara->proj.bajo -= 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -723,6 +786,11 @@ void keyboardspecial(int key, int x, int y){
                 
             case 104: //REPAG
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
                     if(movimiento == TRASLADAR){
                         glTranslated(0,0,-1);
                     }else if(movimiento == ROTAR){
@@ -730,12 +798,23 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(1,1,0.9);
                     }
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,0,0,-1);
+                        if(vista == VUELO){
+                           glTranslated(0,0,-1);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             GLdouble dist = distancia_camara_objeto();
                             if (dist > 1.0){
                                 glTranslated(0,0,-1);
@@ -744,16 +823,18 @@ void keyboardspecial(int key, int x, int y){
                             }
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,0,0,1);
+                        if(vista == VUELO){
+                           glTranslated(0,0,-1);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,-1);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto += 0.01;
                         _selected_camara->proj.bajo -= 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -764,6 +845,11 @@ void keyboardspecial(int key, int x, int y){
                 
              case 105: //AVPAG
                 if(modo == OBJETO || modo == CAMARAOBJETO){
+                    glMatrixMode(GL_MODELVIEW);
+                    if(referencia == LOCAL)
+                        glLoadMatrixd(_selected_object->mptr->M);
+                    else
+                        glLoadIdentity();
                     if(movimiento == TRASLADAR){
                         glTranslated(0,0,1);
                     }else if(movimiento == ROTAR){
@@ -771,12 +857,23 @@ void keyboardspecial(int key, int x, int y){
                     }else if(movimiento == ESCALAR){
                         glScaled(1,1,1.1);
                     }
+                    elemM *n = (elemM*) malloc(sizeof(elemM));
+                    if(referencia == LOCAL)
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M); 
+                    else{
+                        glMultMatrixd(_selected_object->mptr->M);
+                        glGetDoublev(GL_MODELVIEW_MATRIX, n->M);          
+                    }                                    
+                    n->sigPtr = _selected_object->mptr;
+                    _selected_object->mptr = n;
+                    
                 }else if(modo == CAMARA){
+                    glLoadMatrixd(_selected_camara->Minv);
                     if(movimiento == TRASLADAR){
-                        if(proyeccion == VUELO){
-                           glRotated(10,0,0,1);
+                        if(vista == VUELO){
+                           glTranslated(0,0,1);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             GLdouble dist = distancia_camara_objeto();
                             if (dist < 100.0){ //no permitimos que se aleje en exceso
                                 glTranslated(0,0,1);
@@ -785,16 +882,18 @@ void keyboardspecial(int key, int x, int y){
                             }
                         }
                     }else if(movimiento == ROTAR){
-                        if(proyeccion == VUELO){
+                        if(vista == VUELO){
                            glRotated(10,0,0,1);
                         }
-                        else if(proyeccion == ANALISIS){
+                        else if(vista == ANALISIS){
                             modo_analisis(0,-1);
                         }
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.alto += 0.01;
                         _selected_camara->proj.bajo -= 0.01;
                     }
+                    glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->Minv);
+                    matriz_inversa(_selected_camara);
                     
                 }else if(modo == ILUMINACION){
                     break;
@@ -802,23 +901,7 @@ void keyboardspecial(int key, int x, int y){
                 printf("AVPAG \n");
                 break;
                 
-            if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
-            {
-                if(referencia == GLOBAL)         // Referencia GLOBAL
-                    glMultMatrixd(m->M);
-                            
-                glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada); 
-                
-                sig_matriz = malloc(sizeof (elemM));            
-                for(i =0; i<16; i++)
-                    sig_matriz->M[i] = matriz_rotada[i];
-                            
-                sig_matriz->sigPtr = m;
-                _selected_object->mptr = sig_matriz;
-                            
-                glutPostRedisplay();
-            }
-                glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
+      
             
                 glutPostRedisplay();
         }  
