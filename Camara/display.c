@@ -14,6 +14,7 @@ extern GLdouble _ortho_z_min,_ortho_z_max;
 
 extern object3d *_first_object;
 extern object3d *_selected_object;
+extern object3d *_camara_objeto;
 
 extern camara *_first_camara;
 extern camara *_selected_camara;
@@ -23,8 +24,34 @@ extern int modo;
 extern int proyeccion;                  
 extern int referencia ; 
 
+void obtenerMCSR(GLdouble *M, GLdouble *MCSR);
+
+/**
+ * función para calcular el producto escalar entre la cámara y un polígono
+ * @param uno punto del polígono
+ * @param normal vector normal del polígono
+ * @param mo  matriz de objeto del polígono
+ * @param mc  matriz de la cámara
+ * @return
+ */
+GLdouble producto_escalar(point3 uno, vector3 normal, GLdouble *mo, GLdouble *mc){
+
+    vector3 n, co, cero;
+    GLdouble m[16];
+    obtenerMCSR(m, mo);
+
+    n.x = mc[12] * m[0] + mc[13] * m[4] + mc[14] * m[8] + m[12];
+    n.y = mc[12] * m[1] + mc[13] * m[5] + mc[14] * m[9] + m[13];
+    n.z = mc[12] * m[2] + mc[13] * m[6] + mc[14] * m[10] + m[14];
+
+    co.x = n.x - uno.x;
+    co.y = n.y - uno.y;
+    co.z = n.z - uno.z;
 
 
+
+    return (co.x * normal.x) + (co.y * normal.y) + (co.z * normal.z);
+}
 
 /**
  * @brief Function to calculate de matrix Mcsr of the camera
@@ -121,7 +148,6 @@ void reshape(int width, int height) {
      *  rounding the ratio to integer values we need to cast width and height before computing the ratio */
     _window_ratio = (GLdouble) width / (GLdouble) height;
 }
-
 /**
  * @brief Callback display function
  */
@@ -130,61 +156,23 @@ void display(void) {
     object3d *aux_obj = _first_object;
     camara *aux_camara = _first_camara;
     GLdouble MCSR[16];
-	camara *cama;
-
-	// establecer matriz de proyección
-	
-	// establecer matriz de cambio de sistema de referencia en MODELVIEW
-	
-	// establecer parametros de las fuentes de iluminación (posiciones, direcciones, intensidades...) 
-	
-	// dibujar objetos
-		// para cada objeto hay que establecer el material del que se compone
-		// para cada poligono o vertice hay que establecer el vector normal
-		//para cada objeto hay que dibujar sus poligonos con sus vertices)
-		
-
-	// glutSwapBuffers();
-
-
-	 /*When the window is wider than our original projection plane we extend the plane in the X axis*/
-  
-	/*
-	    
-    if ((_ortho_x_max - _ortho_x_min) / (_ortho_y_max - _ortho_y_min) < _window_ratio) {
-        /* New width 
-        GLdouble wd = (_ortho_y_max - _ortho_y_min) * _window_ratio;
-        /* Midpoint in the X axis 
-        GLdouble midpt = (_ortho_x_min + _ortho_x_max) / 2;
-        /*Definition of the projection
-        glOrtho(midpt - (wd / 2), midpt + (wd / 2), _ortho_y_min, _ortho_y_max, _ortho_z_min, _ortho_z_max);
-    } else {/* In the opposite situation we extend the Y axis 
-        /* New height 
-        GLdouble he = (_ortho_x_max - _ortho_x_min) / _window_ratio;
-        /* Midpoint in the Y axis 
-        GLdouble midpt = (_ortho_y_min + _ortho_y_max) / 2;
-        
-        glOrtho(_ortho_x_min, _ortho_x_max, midpt - (he / 2), midpt + (he / 2), _ortho_z_min, _ortho_z_max);
-    }
-
-	*/    
-	
-	if(modo == CAMARAOBJETO){
-		cama = _object_camara;
-	}else{
-		cama = _selected_camara;
-	}
-
-	/* Clear the screen */
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    /* Clear the screen */
+    glClear(GL_COLOR_BUFFER_BIT);
     /* Define the projection */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-	/*When the window is wider than our original projection plane we extend the plane in the X axis*/
-   
-    if((_selected_object!=NULL) && (modo==OBJETO )){
+
+    if( proyeccion == PERSPECTIVA) { // perspectiva
+        glFrustum(-0.1, 0.1, -0.1, 0.1, 0.1, 100.0);
+    }
+    else if(proyeccion == PARALELO){ // paralela
+        glOrtho(-5.0, 5.0, -5.0, 5.0, 0.0, 100.0);
+    }
+
+
+
+	if((_selected_object!=NULL) && (modo==OBJETO )){
         obtenerMCSR(_selected_object->mptr->M, MCSR);
     }
 	if((_selected_object!=NULL) && (modo==CAMARAOBJETO)){
@@ -192,37 +180,20 @@ void display(void) {
 	}
     if ((_selected_object!=NULL) && (_selected_camara!=NULL) && (modo==CAMARA)){
         obtenerMCSR(_selected_camara->M, MCSR);
-    }
-
-
-	if(proyeccion == PERSPECTIVA) { 	// perspectiva
-        glFrustum(-0.1, 0.1, -0.1, 0.1, 0.1, 100.0);
-    }
-    else if(proyeccion == PARALELO){ 	// paralela
-        glOrtho(-5.0, 5.0, -5.0, 5.0, 0.0, 100.0);
-    }
-
-    /* Now we start drawing the object */
-    glMatrixMode(GL_PROJECTION);
+    }	
+	
+	
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //glLoadMatrixd(MCSR);
-	
-	 
-
-
-
-	
 	if(modo != CAMARAOBJETO){
 		glLoadMatrixd(_selected_camara->M);
 	}else
 		glLoadMatrixd(_object_camara->M);
-    
+
     /*First, we draw the axes*/
     draw_axes();
-
-   
-    
-    /*Now each of the objects in the list*/
+	 /*Now each of the objects in the list*/
     while(aux_obj != 0) {
         
         /* Select the color, depending on whether the current object is the selected one or not */
@@ -231,14 +202,12 @@ void display(void) {
         }else{
             glColor3f(KG_COL_NONSELECTED_R,KG_COL_NONSELECTED_G,KG_COL_NONSELECTED_B);
         }
-
-
         /* Draw the object; for each face create a new polygon with the corresponding vertices */
   
         glLoadMatrixd(MCSR);
         glMultMatrixd(aux_obj->mptr->M);
         // dibujar los objetos
-        
+		      
         // es_visible(object3d *optr, aux_obj->num_faces, punto3 *pptr)
         
         for (f = 0; f < aux_obj->num_faces; f++) {
