@@ -22,3 +22,19 @@ Hay que calcular el vector normal de cada polígono, y basandonos en estos vecto
 Se puede dar la posibilidad de modificar las propiedades de las luces, además de su posición o dirección.
 Hay que definir la estructura necesaria para cada luz, y habrá que añadir al objeto los campos necesarios para que guarde las caracteristicas del material. 
 El material se aplicará a todo el objeto.
+
+
+Teclas:
+
+f9	      Activar/desactivar iluminación (por defecto debe estar activado)
+f1 a f4	  Encender/apagar la funte de luz correspondiente. Bombilla, sol, foco del objeto seleccionado y foco de la cáma. Estas cuatro fuentes de luz son obligatorias.
+f5 a f8   Encender/apagar la funte de luz correspondiente.
+1-8	      Seleccionar la funte de luz correspondiente. En caso de que se transforme luz la transformación afectará a la fuente de luz seleccionada.
+0	        Asignar tipo de fuente de luz a la fuente seleccionada (de 5 a 8, los cuatro primeros son fijos)
+f12	      Cambiar de tipo de iluminación al objeto seleccionado (flat <--> smooth)
++	        Si estamos modificando luces, y la fuente de luz seleccionada es de tipo foco incrementar ángulo de apertura
+-	        Decrementar ángulo de apertura del foco (si es que es un foco y estamos modificando luces)
+a-A       Aplicar transformaciones a las fuentes de luz (siempre que sea posible) y no a objetos ni a cámaras.
+flechas: (izda, dcha, arriba,abajo, AvPag,RePag)
+Rotaciones/traslaciones a las fuentes de luz (en función del tipo de transformación y del tipo de fuente de luz algunas transformaciones no tienen sentido)
+La tecla i modifica la intensidad de la fuente de luz (RGB)
