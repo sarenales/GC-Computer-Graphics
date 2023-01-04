@@ -27,3 +27,32 @@ Las camaras puras, se puede mover en modo analisis(<L>) o modo vuelo(<G>).
   Tomaremos este objeto como orígen, orbitraremos en torno a él. El único movimiento que puede hacer la cámara es la de acercarse o alejarse del objeto. Para eso con el 
   Avpag (avanzar) y Repag (alejar).
   
+Teclas:
+tecla k --> Cambiar de cámara (puede haber más de una cámara...)
+
+Además de las cámara puras (no asociadas a objetos) cada objeto lleva asociada una cámara, la tecla k debe moverse entre las cámaras puras. Para visualizar utilizando la cámara asociada al objeto tenemos la tecla K (mayuscula).
+
+tecla K --> Intercambiar de cámara pura a cámara asociada a objeto, Si estamos visualizando mediante cámara de objeto vuelve a visulizar lo que ve la cámara pura.
+
+Si visualizamos lo que ve el objeto no tiene sentido transformar la cámara, por lo que habrá que pasar a modo objeto (las transformaciones afectan al objeto), y al transformar el objeto se visualizará el escenario desde la nueva posición y orientación del objeto, es decir, habrá que recalcular o actualizar las matrices de cambio de sistema de referencia de la cámara asociada al objeto. Además, si estamos visualizando lo que ve el objeto no podremos usar la tecla c ni la k, ya que estamos en modo objeto.
+
+tecla C,c --> Activar modo cámara. Las teclas de transformación modificarán la cámara y no los objetos. Pero si estamos visualizando lo que ve el objeto seleccionado no se debe permitir el cambio de modo:
+
+
+       tecla n    --> Añadir una cámara nueva.
+
+tecla G,g --> Cámara en modo análisis (mirando al objeto seleccionado)
+                     En modo análisis, cuando tengamos la traslación activada, AvPag y RePag deben hacer avanzar/retroceder a la cámara (en la dirección en la que mira, es decir debe "acercarse a" o "alejarse de" el objeto seleccionado) mientras que las cuatro flechas deben hacer girar la posición de la cámara alrededor del objeto seleccionado (pitch y Yaw). Dicha rotación debe realizarse según el sistema de referencia de la propia cámara, es decir los ejes de rotación deben ser los ejes del sistema de referencia de la cámara y no las del mundo..
+                      Si tenemos la rotación activada AvPag y RePag deben realizar una rotación en el eje Z de la cámara (Roll), y las flechas deben hacer lo mismo que hacen en traslación.
+
+tecla L,l --> Cámara en modo vuelo. Transformaciones en el sistema local de la cámara
+                     En modo vuelo, cuando tengamos la traslación activada, AvPag y RePag deben hacer avanzar/retroceder a la cámara (en la dirección en la que mira) mientras que las cuatro flechas deben hacer girar la dirección en la que mira la cámara; hacer mirar hacia la izquierda/derecha (Yaw) o  arriba/abajo (Pitch)). Por tanto, el siguiente avance/retroceso deberá realizarse en la nueva dirección.
+                      Si tenemos la rotación activada AvPag y RePag deben realizar una rotación en el eje Z de la cámara (Roll), y las flechas deben hacer pitch y yaw (igual que en traslación).
+
+tecla E,e --> Cambio del volumen de visión (desactiva R y T)
+
+tecla R,r --> rotaciones a la cámara (desactiva E y T)
+
+tecla T,t --> traslaciones a la cámara (desactiva E y R)
+
+tecla P,p --> cambio de tipo de proyección: perspectiva / paralela. Al principio, por defecto debe estar en perspectiva.
