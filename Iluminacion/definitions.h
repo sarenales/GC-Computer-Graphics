@@ -20,6 +20,7 @@
 #define KG_MSSG_NOOBJ                       "No hay ningun objeto cargado."
 #define KG_MSSG_NODELETE                    "No se puede borrar nada!!"
 #define KG_MSSG_NOCAM                       "No hay mas camaras cargas..."
+#define KG_MSSG_NOMODECAM                   "No se encuentra en modo camara."
 
 #define KG_STEP_MOVE                        5.0f
 #define KG_STEP_ROTATE                      10.0f
@@ -78,6 +79,20 @@
 #define VUELO                               0
 #define ANALISIS                            1
 
+// movimiento
+#define ROTAR                               0
+#define TRASLADAR                           1
+#define ESCALAR                             2
+
+// iluminacion
+#define ON                                  1
+#define OFF                                 0
+
+#define NONE                               -1
+#define SOL                                 0
+#define BOMBILLA                            1
+#define FOCO                                2
+#define FOCO_OBJETO                         3
 
 
 /** STRUCTURES **/
@@ -135,22 +150,31 @@ typedef struct elemM{
     struct elemM *sigPtr;
 } elemM;
 
-
+typedef struct proy{
+  //  GLdouble angulo;
+    GLdouble cerca; // near
+    GLdouble lejos; // far 
+    GLdouble bajo; // bottom
+    GLdouble alto; // top 
+    GLdouble izq; //left
+    GLdouble der; //right
+}proy;
 
 
 typedef struct camara{
     GLdouble M[16];                     /* the csr matrix of the camera*/
     GLdouble Mobj[16];                  /* the matrix of the obj asociated */
     GLdouble Minv[16];
-    GLdouble projection[6];
-    int tipo;
+    int tipo_proyeccion;                /* projection type */
     GLint num_vertices;                 /* number of vertices in the camara*/
     vertex *vertex_table;               /* table of vertices */
     GLint num_faces;                    /* number of faces in the camara */
     face *face_table;                   /* table of faces */
+    int vistacam;                          /* tipo de camara: pura o vuelo*/
     point3 min;                         /* coordinates' lower bounds */
     point3 max;                         /* coordinates' bigger bounds */
     struct camara *next;
+    proy proj;
 } camara;
 
 
@@ -170,5 +194,32 @@ struct object3d{
 };
 
 typedef struct object3d object3d;
+
+/****************************
+ * Structure of the matrix  *
+ *  source of light         *
+ ****************************/
+typedef struct iluminacion_objetos{
+    GLdouble diffuse[4];
+    GLdouble ambient[4];
+    GLdouble specular[4];
+    GLdouble position[4];
+    GLint activado;
+    GLint tipo_luz;     /* none, sol, bombilla, foco o focoobjeto*/
+    GLdouble cut_off;
+    Gldouble objeto_luz[16];    
+} iluminacion_objetos;
+
+
+/****************************
+ * Structure of the matrix  *
+ *  source of the material  *
+ ****************************/
+typedef struct material{
+    GLdouble amb[3];    /*ambiente RGB*/
+    GLdouble dif[3];    /*diffuse RGB*/
+    GLdouble spec[3];   /*specular RGB*/
+    GLdouble shiny;     /*shiniess*/
+} material;
 
 #endif // DEFINITIONS_H
