@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <math.h>
 #include "definitions.h"
 
 #define MAXLINE 200
+#define PATHCAM "camaraprincipal.obj"
+extern object3d *_camara_objeto;
 
 /*
  * Auxiliar function to process each line of the file
@@ -188,3 +191,13 @@ printf("2 pasada\n");
     }
     return (0);
 }
+
+void load_presentation(){
+    
+    _camara_objeto = (object3d *) malloc(sizeof(object3d));
+    
+    read_wavefront(PATHCAM, _camara_objeto);
+    printf("Lee correctamente la camara inicial. \n");
+}
+
+
