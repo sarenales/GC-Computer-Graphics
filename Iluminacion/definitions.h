@@ -94,6 +94,9 @@
 #define FOCO                                2
 #define FOCO_OBJETO                         3
 
+#define PATHCAM                             "camaraprincipal.obj"
+#define LIGHTPATH                           "lightsource.obj"
+
 
 /** STRUCTURES **/
 
@@ -128,6 +131,7 @@ typedef struct {
 typedef struct {
     point3 coord;                       /* coordinates,x, y, z */
     GLint num_faces;                    /* number of faces that share this vertex */
+    vector3 normal;                     /* vector normal del vector*/
 } vertex;
 
 /****************************
@@ -177,6 +181,17 @@ typedef struct camara{
     proy proj;
 } camara;
 
+/****************************
+ * Structure of the matrix  *
+ *  source of the material  *
+ ****************************/
+typedef struct material{
+    GLdouble amb[4];    /*ambiente RGB*/
+    GLdouble dif[4];    /*diffuse RGB*/
+    GLdouble spec[4];   /*specular RGB*/
+    GLdouble pos[4];     /*position */
+    GLdouble shiny[1];     /*shiniess*/
+} material;
 
 /****************************
  * Structure to store a     *
@@ -190,6 +205,8 @@ struct object3d{
     point3 min;                         /* coordinates' lower bounds */
     point3 max;                         /* coordinates' bigger bounds */
     elemM *mptr;
+    GLint shade;                        /* shade property */
+    material *material_light;     /* material of the object */
     struct object3d *next;              /* next element in the pile of objects */
 };
 
@@ -200,26 +217,17 @@ typedef struct object3d object3d;
  *  source of light         *
  ****************************/
 typedef struct iluminacion_objetos{
-    GLdouble diffuse[4];
-    GLdouble ambient[4];
-    GLdouble specular[4];
-    GLdouble position[4];
+    GLdouble diffuse[4];    // color del material cuando esta iluminao directamente
+    GLdouble ambient[4];    // colo del material cuando esta en sombra
+    GLdouble specular[4];   // colo del reflejo cuando esta iluminao directamente
+    GLdouble position[4];   // cantidad de brillo especular del material
     GLint activado;
     GLint tipo_luz;     /* none, sol, bombilla, foco o focoobjeto*/
     GLdouble cut_off;
-    Gldouble objeto_luz[16];    
+    GLdouble objeto_luz[16];   
+    GLdouble spot_direction[3];
 } iluminacion_objetos;
 
 
-/****************************
- * Structure of the matrix  *
- *  source of the material  *
- ****************************/
-typedef struct material{
-    GLdouble amb[3];    /*ambiente RGB*/
-    GLdouble dif[3];    /*diffuse RGB*/
-    GLdouble spec[3];   /*specular RGB*/
-    GLdouble shiny;     /*shiniess*/
-} material;
 
 #endif // DEFINITIONS_H
