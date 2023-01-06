@@ -25,8 +25,13 @@ camara *_first_camara = 0;
 camara *_selected_camara = 0;
 camara *_object_camara = 0;
 
+iluminacion_objetos global_lights[8];
+
 elemM *m1 = 0;
 elemM *m2 = 0;
+
+material *ruby, *obsidian, *gold, *mat_camara, *mat_selec, *red_plastic, *mat_foco, *copper;
+
 
 //objetos_luz luces_globales[8];
 
@@ -57,16 +62,81 @@ void initialization (){
     _window_ratio = (GLdouble) KG_WINDOW_WIDTH / (GLdouble) KG_WINDOW_HEIGHT;
 
     /*Definition of the background color*/
-//    glClearColor(KG_COL_BACK_R, KG_COL_BACK_G, KG_COL_BACK_B, KG_COL_BACK_A);
+    //glClearColor(KG_COL_BACK_R, KG_COL_BACK_G, KG_COL_BACK_B, KG_COL_BACK_A);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-    // _selected_camara =(camara*) malloc(sizeof(camara));
+    _selected_camara =(camara*) malloc(sizeof(camara));
+
     
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
-    // glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
-    // _selected_camara->M[14] = 10;
-    // _first_camara=_selected_camara;
-    // inicial_camaras(_selected_camara);
+	// _first_camara = malloc (sizeof(camara) );
+      
+	// elemM* m1 = malloc( sizeof(elemM) );
+	// elemM* m2 = malloc( sizeof(elemM) );
+	
+	// glMatrixMode(GL_MODELVIEW);
+	// glLoadIdentity();
+	// gluLookAt(10,10,10, 0,0,0,0,1,0);
+	// glGetDoublev(GL_MODELVIEW_MATRIX, m1->M);
+	
+	// int i ,j;
+	
+	// for(i = 0; i < 3; i++){
+		// for(j = 0; j < 3; j++){
+			// m2[i+4*j] = m1[4*i+j];
+		// }
+	// }
+	
+	// m2->M[3] = 0 ;
+	// m2->M[7] = 0 ;
+	// m2->M[11] = 0 ;
+	// m2->M[15] = 1 ;
+	// m2->M[12] = 10 ;
+	// m2->M[13] = 10 ;
+	// m2->M[14] = 10 ;
+	
+	
+	// for(i=0; i < 15; i++){
+		// _first_camara->Minv[i] = m1->M[i];
+		// _first_camara->M[i] = m2->M[i];
+	// }
+
+	
+	// _first_camara->proj.izq = (-1)*(0.1);
+    // _first_camara->proj.der = 0.1;
+    // _first_camara->proj.alto = 0.1;
+    // _first_camara->proj.bajo = (-1)*(0.1);
+    // _first_camara->proj.cerca = 0.1;
+    // _first_camara->proj.lejos = 1000.0;
+
+    // object3d auxiliar_objeto;
+    
+	// _camara_objeto = (object3d *) malloc(sizeof(object3d));
+    // printf("agggg\n");
+   
+	// read_wavefront(PATHCAM, _camara_objeto);
+    // printf("Lee correctamente la camara inicial. \n");
+    
+    // load_presentation();
+    // printf("pasa load\n");
+    
+    // _first_camara->face_table = _camara_objeto->face_table;
+    // _first_camara->num_faces = _camara_objeto->num_faces;
+    // _first_camara->vertex_table = _camara_objeto->vertex_table;
+    // _first_camara->num_vertices = _camara_objeto->num_vertices;
+    // _first_camara->max = _camara_objeto->max;
+    // _first_camara->min = _camara_objeto->min;
+    
+	// _first_camara->next = 0;
+	// _selected_camara = _first_camara;
+	
+    
+    
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev(GL_MODELVIEW_MATRIX,_selected_camara->M);
+    _selected_camara->M[14] = 10;
+    _first_camara=_selected_camara;
+    //inicial_camaras(_selected_camara);
     
     /*Definition of the method to draw the objects*/
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
@@ -93,11 +163,13 @@ int main(int argc, char** argv) {
     
     glEnable(GL_DEPTH_TEST); // activar el test de profundidad (Z-buffer)
 
-    
-    // if (flat_smooth) 
-        // glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
-    // else 
-        // glShadeModel(GL_FLAT);  // basta con vector normal del poligono
+	glEnable(GL_LIGHTING);   // activar el cáclulo de la iluminación
+    glEnable(GL_DEPTH_TEST); // activar el test de profundidad (Z-buffer)
+
+    if (flat_smooth) 
+        glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
+    else 
+        glShadeModel(GL_FLAT);  // basta con vector normal del poligono
     
 
 
