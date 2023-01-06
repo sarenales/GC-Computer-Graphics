@@ -8,6 +8,7 @@
 #include "definitions.h"
 #include "load_obj.h"
 #include "camara.h"
+#include "iluminacion.h"
 
 extern object3d * _first_object;
 extern object3d * _selected_object;
@@ -22,6 +23,9 @@ extern int modo;
 extern int referencia ; 
 
 extern int luz;
+extern int _selected_light; 
+extern iluminacion_objetos global_lights[8]; 
+extern material *mat_camara, *mat_selec, *mat_foco;
 
 extern int proyeccion;   
 extern int vista;
@@ -457,20 +461,11 @@ void keyboard(unsigned char key, int x, int y) {
         case 'Z':
         case 'z': //  (Z,z) Deshacer
            if(_selected_object != NULL){
-               // if(modo == OBJETO){
-                    if(_selected_object->mptr->sigPtr != NULL)
-                        _selected_object->mptr = _selected_object->mptr->sigPtr;
-                    printf("Deshaciendo movimiento del objeto ... \n");
-                // }else if(modo == CAMARA){
-                    // if(_selected_camara->next != NULL) //TODO cuidau
-                        // _selected_camara = _selected_camara->next;
-                    // printf("Deshaciendo CAM...\n");
-                    
-                // }
+                if(_selected_object->mptr->sigPtr != NULL)
+                    _selected_object->mptr = _selected_object->mptr->sigPtr;
+                printf("Deshaciendo movimiento del objeto ... \n");
             }
         break;
-        
-        
         
         
     
@@ -558,16 +553,71 @@ void keyboard(unsigned char key, int x, int y) {
         break;
         
         case '0':
-           // add_lights();
+            add_lights();
             break;
         
-        
+        case '1':
+        if(_selected_light != 0 && luz == ON) {
+            _selected_light = 0;
+            printf("BOMBILLA seleccionada.\n");
+        }
+        break;
+
+        case '2':
+            if(_selected_light != 1 && luz == ON) {
+                _selected_light = 1;
+                printf("SOL seleccionado.\n");
+            }
+        break;
+
+        case '3':
+            if(_selected_light != 2 && luz == ON) {
+                _selected_light = 2;
+                printf("FOCO-OBJETO seleccionado.\n");
+            }
+        break;
+
+        case '4':
+            if(_selected_light != 3 && luz == ON) {
+                _selected_light = 3;
+                printf("FOCO-CÁMARA seleccionado.\n");
+            }
+        break;
+
+        case '5':
+            if(_selected_light != 4 && luz == ON) {
+                _selected_light = 4;
+                printf("Seleccionada LUZ 5.\n");
+            }
+        break;
+
+        case '6':
+            if(_selected_light != 5 && luz == ON) {
+                _selected_light = 5;
+                printf("Seleccionada LUZ 6.\n");
+            }
+        break;
+
+        case '7':
+            if(_selected_light != 6 && luz == ON) {
+                _selected_light = 6;
+                printf("Seleccionada LUZ 7.\n");
+            }
+        break;
+
+        case '8':
+            if(_selected_light != 7 && luz == ON) {
+                _selected_light = 7;
+                printf("Seleccionada LUZ 8.\n");
+            }
+        break;
 
         default:
             /*In the default case we just print the code of the key. This is usefull to define new cases*/
             printf("%d %c\n", key, key);
             printf("keyboard");
-            break;
+        break;
+        
         }
         
         fflush(stdout); // me aseguro que borra todo
@@ -611,70 +661,400 @@ void keyboardspecial(int key, int x, int y){
             }
         }
         
+        if(vista == ANALISIS && movimiento != ROTAR){
+            movimiento = ROTAR;
+            printf("En modo analisis no se puede trasladar, no escalar. Solo Rotar\n");
+            printf("Se ha cambiado a modo rotacion. \n");
+        }
         
         switch (key) {
             case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,1,0,0);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(0,1,0);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(1,1.1,1);
-                
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,1,0,0);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(0,1,0);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(1,1.1,1);
+                }else if(modo == CAMARA){
+                    if(vista == VUELO){
+                        if(movimiento == ROTAR ) {
+                           glRotated(10,1,0,0);
+                        }else if(movimiento == TRASLADAR){
+                            glTranslated(0,1,0);
+                        }else if(movimiento == ESCALAR){
+                            _selected_camara->proj.alto -= 0.01;
+                            _selected_camara->proj.bajo += 0.01;
+                        }                             
+                    }else{
+                        // modo_analisis(1,0);
+                        glLoadIdentity();
+                        
+                        
+                        glTranslated(_selected_object->mptr->M[12], 
+                                    _selected_object->mptr->M[13],
+                                    _selected_object->mptr->M[14]);
+                        
+                        glRotated(10,-1,0,0);
+                        
+                        
+                        glTranslated(-(_selected_object->mptr->M[12]), 
+                                    -(_selected_object->mptr->M[13]),
+                                    -(_selected_object->mptr->M[14]));
+                        
+                        glMultMatrixd(_selected_camara->M);
+                        
+                        
+                        
+                        glLoadMatrixd(_selected_camara->Minv);
+                        
+                        glTranslated(_selected_object->mptr->M[12], 
+                                    _selected_object->mptr->M[13],
+                                    _selected_object->mptr->M[14]);
+                        
+                        glRotated(10,-1,0,0);
+                        
+                        glTranslated(-(_selected_object->mptr->M[12]), 
+                                    -(_selected_object->mptr->M[13]),
+                                    -(_selected_object->mptr->M[14]));
+                            
+                    }
+                }
                 printf("UP \n");
                 break;
                 
             case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,-1,0,0);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(0,-1,0);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(1,0.9,1);
-            
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,-1,0,0);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(0,-1,0);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(1,0.9,1);
+                }else if(modo == CAMARA){
+                    if(vista == VUELO){
+                        if(movimiento == ROTAR ){
+                            glRotated(10,-1,0,0);
+                        }else if(movimiento == TRASLADAR){
+                            glTranslated(0,-1,0);
+                        }else{
+                            _selected_camara->proj.alto += 0.01;
+                            _selected_camara->proj.bajo -= 0.01;
+                        }
+                    }else{
+                        modo_analisis(-1,0);
+                    }
+                }
                 printf("DOWN \n");
                 break;
+                
             case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,0,1,0);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(1,0,0);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(1.1,1,1);
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,0,1,0);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(-1,0,0);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(1.1,1,1);
+                }else if(modo == CAMARA){
+                    if(vista == VUELO){
+                        if(movimiento == ROTAR){
+                            glRotated(10,0,1,0);
+                        }else if(movimiento == TRASLADAR){
+                            glTranslated(1,0,0);
+                        }else{
+                            _selected_camara->proj.izq -= 0.01;
+                            _selected_camara->proj.der += 0.01;
+                        }
+                    }else if(vista == ANALISIS){
+                        modo_analisis(0,-1);
+                    }
+                }
                 
                 printf("RIGHT \n");
                 break;
+                
+                
             case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,0,-1,0);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(-1,0,0);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(0.9,1,1);
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,0,-1,0);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(1,0,0);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(0.9,1,1);
+                }else if(modo == CAMARA){
+                    if(vista == VUELO){
+                        if(movimiento == ROTAR){
+                            glRotated(10,0,-1,0);
+                        }else if(movimiento == TRASLADAR){
+                            glTranslated(-1,0,0);
+                        }else{
+                            _selected_camara->proj.izq += 0.01;
+                            _selected_camara->proj.der -= 0.01;
+                        }
+                    }else{
+                        modo_analisis(0,1);
+                    }
+                }
                 
                 printf("LEFT \n");
                 break;
-            case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z             
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,0,0,1);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(0,0,1);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(1,1,1.1);
                 
+                
+            case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z   
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,0,0,1);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(0,0,1);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(1,1,1.1);
+                }else if(modo == CAMARA){
+                    if(movimiento == TRASLADAR){
+                        if(vista == ANALISIS){
+                            // para no pasarnos
+                            GLdouble dist = distancia_camara_objeto();
+                            if(dist > 1.0){
+                                glTranslated(0,0,1);
+                            }else{
+                                centre_camera_to_obj(_selected_object);
+                            }
+                        }else{
+                            glTranslated(0,0,1);
+                        }
+                    }else if(movimiento == ROTAR){
+                        glRotated(10,0,0,1);
+                    }else if(movimiento == ESCALAR){
+                        _selected_camara->proj.cerca -= 0.01;
+                        _selected_camara->proj.lejos -= 0.01;
+                    }
+                }                
                 printf("AVPAG \n");
                 break;
                 
             case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
-                if(movimiento == 0)         // rotar     (0)
-                    glRotated(10,0,0,-1);
-                else if(movimiento == 1)    // trasladar (1)
-                    glTranslated(0,0,-1);
-                else if(movimiento == 2)    // escalar   (2)
-                    glScaled(1,1,0.9);
-                
+                if(modo == OBJETO || modo == CAMARAOBJETO){
+                    if(movimiento == 0)         // rotar     (0)
+                        glRotated(10,0,0,-1);
+                    else if(movimiento == 1)    // trasladar (1)
+                        glTranslated(0,0,-1);
+                    else if(movimiento == 2)    // escalar   (2)
+                        glScaled(1,1,0.9);
+                }else if(modo == CAMARA){
+                    if(movimiento == TRASLADAR){
+                        if(vista == ANALISIS){
+                            // para no pasarnos
+                            GLdouble dist = distancia_camara_objeto();
+                            if(dist < 100.0){
+                                glTranslated(0,0,-1);
+                            }else{
+                                centre_camera_to_obj(_selected_object);
+                            }
+                        }else{
+                            glTranslated(0,0,-1);
+                        }
+                    }else if(movimiento == ROTAR){
+                        glRotated(10,0,0,-1);
+                    }else if(movimiento == ESCALAR){
+                        _selected_camara->proj.cerca += 0.01;
+                        _selected_camara->proj.lejos += 0.01;
+                    }
+                } 
                 printf("REPAG \n");
                 break;
+
+                case GLUT_KEY_F1:
+                    if(luz==ON) {
+                        switch (global_lights[0].activado) {
+                            case 0:
+                                global_lights[0].activado = 1;
+                                glEnable(GL_LIGHT0);
+                                printf("BOMBILLA encendida\n");
+                                break;
+                            case 1:
+                                global_lights[0].activado = 0;
+                                glDisable(GL_LIGHT0);
+                                printf("BOMBILLA apagada\n");
+                                break;
+                        }
+                    }else{
+                        printf("primero activa la iluminacion\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F2:
+                    if(luz==ON) {
+                        switch (global_lights[1].activado) {
+                            case 0:
+                                global_lights[1].activado = 1;
+                                glEnable(GL_LIGHT1);
+                                printf("SOL encendido\n");
+                                break;
+                            case 1:
+                                global_lights[1].activado = 0;
+                                glDisable(GL_LIGHT1);
+                                printf("SOL apagado\n");
+                                break;
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F3:
+                    if(luz == ON && _selected_object!=0) {
+                        switch (global_lights[2].activado) {
+                            case 0:
+                                global_lights[2].activado = 1;
+                                glEnable(GL_LIGHT2);
+                                printf("FOCO-OBJETO encendido\n");
+                                break;
+                            case 1:
+                                global_lights[2].activado = 0;
+                                glDisable(GL_LIGHT2);
+                                printf("FOCO-OBJETO apagado\n");
+                                break;
+                        }
+                    }else{
+                        printf("primero activa la iluminación o carga un objeto\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F4:
+                    if(luz==ON) {
+                        switch (global_lights[3].activado) {
+                            case 0:
+                                global_lights[3].activado = 1;
+                                glEnable(GL_LIGHT3);
+                                printf("FOCO-CÁMARA encendido\n");
+                                break;
+                            case 1:
+                                global_lights[3].activado = 0;
+                                glDisable(GL_LIGHT3);
+                                printf("FOCO-CÁMARA apagado\n");
+                                break;
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F5:
+                    if(luz==ON) {
+                        if (global_lights[4].tipo_luz != NONE) {
+                            switch (global_lights[4].activado) {
+                                case 0:
+                                    global_lights[4].activado = 1;
+                                    glEnable(GL_LIGHT4);
+                                    printf("luz 5 encendida\n");
+                                    break;
+                                case 1:
+                                    global_lights[4].activado = 0;
+                                    glDisable(GL_LIGHT4);
+                                    printf("luz 5 apagada\n");
+                                    break;
+                            }
+                        } else {
+                            printf("primero incializa la luz 5\n");
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F6:
+                    if(luz == ON) {
+                        if (global_lights[5].tipo_luz != NONE) {
+                            switch (global_lights[5].activado) {
+                                case 0:
+                                    global_lights[5].activado = 1;
+                                    glEnable(GL_LIGHT5);
+                                    printf("luz 6 encendida\n");
+                                    break;
+                                case 1:
+                                    global_lights[5].activado = 0;
+                                    glDisable(GL_LIGHT5);
+                                    printf("luz 6 apagada\n");
+                                    break;
+                            }
+                        } else {
+                            printf("primero incializa la luz 6\n");
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F7:
+                    if(luz == ON) {
+                        if (global_lights[6].tipo_luz != NONE) {
+                            switch (global_lights[6].activado) {
+                                case 0:
+                                    global_lights[6].activado = 1;
+                                    glEnable(GL_LIGHT6);
+                                    printf("luz 7 encendida\n");
+                                    break;
+                                case 1:
+                                    global_lights[6].activado = 0;
+                                    glDisable(GL_LIGHT6);
+                                    printf("luz 7 apagada\n");
+                                    break;
+                            }
+                        } else {
+                            printf("primero incializa la luz 7\n");
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F8:
+                    if(luz == ON) {
+                        if (global_lights[7].tipo_luz != NONE) {
+                            switch (global_lights[7].activado) {
+                                case 0:
+                                    global_lights[7].activado = 1;
+                                    glEnable(GL_LIGHT7);
+                                    printf("luz 8 encendida\n");
+                                    break;
+                                case 1:
+                                    global_lights[7].activado = 0;
+                                    glDisable(GL_LIGHT7);
+                                    printf("luz 8 apagada\n");
+                                    break;
+                            }
+                        } else {
+                            printf("primero incializa la luz 8\n");
+                        }
+                    }else{
+                        printf("primero activa la iluminación\n");
+                    }
+                    break;
+
+                case GLUT_KEY_F9:
+                    if(luz == OFF){
+                        luz = ON;
+                        glEnable(GL_LIGHTING);
+                        printf("Iluminación ON\n");
+                    }else{
+                        luz = OFF;
+                        glDisable(GL_LIGHTING);
+                        printf("Iluminación OFF\n");
+                        if(modo == ILUMINACION){
+                            modo = OBJETO;
+                            printf("Elemento cambiado a objeto debido a que la iluminación ha sido desactivada\n");
+                        }
+                    }
+                    break;
+
+                case GLUT_KEY_F12:
+                    if(luz == ON) {
+                        _selected_object->shade = (_selected_object->shade + 1) % 2;
+                    }
+                    break;
+
+                
         }
         if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
