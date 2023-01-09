@@ -277,7 +277,15 @@ void keyboard(unsigned char key, int x, int y) {
                     sig_matriz->sigPtr = m;
                     _selected_object->mptr = sig_matriz;
                     
-                }else if(modo == CAMARA){        
+                }else if(modo == CAMARA){      
+
+                    // _selected_camara->proj.izq = _selected_camara->proj.izq - 0.01;
+                    // _selected_camara->proj.der = _selected_camara->proj.der - 0.01;
+                    // _selected_camara->proj.cerca = _selected_camara->proj.cerca - 0.01;
+                    // _selected_camara->proj.lejos = _selected_camara->proj.lejos - 0.01;
+                    // _selected_camara->proj.alto = _selected_camara->proj.alto - 0.01;
+                    // _selected_camara->proj.bajo = _selected_camara->proj.bajo - 0.01;
+                    
                     wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
                     he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
                     midx = (_ortho_x_max+_ortho_x_min)/2;
@@ -311,6 +319,13 @@ void keyboard(unsigned char key, int x, int y) {
                     sig_matriz->sigPtr = m;
                     _selected_object->mptr = sig_matriz;
                 }else if(modo == CAMARA){
+                    // _selected_camara->proj.izq = _selected_camara->proj.izq + 0.01;
+                    // _selected_camara->proj.der = _selected_camara->proj.der + 0.01;
+                    // _selected_camara->proj.cerca = _selected_camara->proj.cerca + 0.01;
+                    // _selected_camara->proj.lejos = _selected_camara->proj.lejos + 0.01;
+                    // _selected_camara->proj.alto = _selected_camara->proj.alto + 0.01;
+                    // _selected_camara->proj.bajo = _selected_camara->proj.bajo + 0.01;
+                    
                     wd=(_ortho_x_max-_ortho_x_min)*KG_STEP_ZOOM;
                     he=(_ortho_y_max-_ortho_y_min)*KG_STEP_ZOOM;
                     midx = (_ortho_x_max+_ortho_x_min)/2;
@@ -553,7 +568,7 @@ void keyboard(unsigned char key, int x, int y) {
         break;
         
         case '0':
-            add_lights();
+            //add_lights();
             break;
         
         case '1':
@@ -687,36 +702,36 @@ void keyboardspecial(int key, int x, int y){
                             _selected_camara->proj.bajo += 0.01;
                         }                             
                     }else{
-                        // modo_analisis(1,0);
-                        glLoadIdentity();
+                        modo_analisis(1,0);
+                        // glLoadIdentity();
                         
                         
-                        glTranslated(_selected_object->mptr->M[12], 
-                                    _selected_object->mptr->M[13],
-                                    _selected_object->mptr->M[14]);
+                        // glTranslated(_selected_object->mptr->M[12], 
+                                    // _selected_object->mptr->M[13],
+                                    // _selected_object->mptr->M[14]);
                         
-                        glRotated(10,-1,0,0);
-                        
-                        
-                        glTranslated(-(_selected_object->mptr->M[12]), 
-                                    -(_selected_object->mptr->M[13]),
-                                    -(_selected_object->mptr->M[14]));
-                        
-                        glMultMatrixd(_selected_camara->M);
+                        // glRotated(10,-1,0,0);
                         
                         
+                        // glTranslated((-1)*(_selected_object->mptr->M[12]), 
+                                    // (-1)*(_selected_object->mptr->M[13]),
+                                    // (-1)*(_selected_object->mptr->M[14]));
                         
-                        glLoadMatrixd(_selected_camara->Minv);
+                        // glMultMatrixd(_selected_camara->M);
                         
-                        glTranslated(_selected_object->mptr->M[12], 
-                                    _selected_object->mptr->M[13],
-                                    _selected_object->mptr->M[14]);
                         
-                        glRotated(10,-1,0,0);
                         
-                        glTranslated(-(_selected_object->mptr->M[12]), 
-                                    -(_selected_object->mptr->M[13]),
-                                    -(_selected_object->mptr->M[14]));
+                        // glLoadMatrixd(_selected_camara->Minv);
+                        
+                        // glTranslated(_selected_object->mptr->M[12], 
+                                    // _selected_object->mptr->M[13],
+                                    // _selected_object->mptr->M[14]);
+                        
+                        // glRotated(10,-1,0,0);
+                        
+                        // glTranslated((-1)*(_selected_object->mptr->M[12]), 
+                                    // (-1)*(_selected_object->mptr->M[13]),
+                                    // (-1)*(_selected_object->mptr->M[14]));
                             
                     }
                 }
@@ -1074,8 +1089,8 @@ void keyboardspecial(int key, int x, int y){
         }
         else if(modo == CAMARA)
         {
-            if(vista == ANALISIS)       
-                glMultMatrixd(_selected_camara->M);
+            // if(vista == ANALISIS)       
+                // glMultMatrixd(_selected_camara->M);
         
             glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
         
