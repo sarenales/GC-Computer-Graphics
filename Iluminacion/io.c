@@ -98,6 +98,15 @@ void print_help(){
     printf("<-> \t\t Escalar -  en todos los ejes (caso de objetos) o disminuir volumen de visión (caso cámara)\n");
     printf("<Z> \t\t Deshacer cambios\n");
     printf("\n\n");
+    
+    printf("FUNCIONES DE ILUMINACIÓN \n");
+    printf("<f9>\t\t Activar/Desactivar iluminación. \n");
+    printf("<f1-f4>\t\t Encender/Apagar fuente de luz correspondiente. Bombilla, sol, foco del objeto seleccionado y foco de la cámara. \n");
+    printf("<f5-f8>\t\t Encender/Apagar fuente de luz correspondiente. \n");
+    printf("<1-8>\t\t Seleccionar la fuente de luz correspondiente. \n");
+    printf("<0>\t\t Asignar tipo de fuente de luz a fuente de 5-8 seleccionada. \n");
+    printf("<f12>\t\t Cambiar tipo de iluminación del objeto seleccionado. \n");
+    printf("\n\n");
 }
 
 /**
@@ -215,9 +224,9 @@ void keyboard(unsigned char key, int x, int y) {
                         _selected_camara = _selected_camara->next;
                     }
                     printf("Siguiente CAMARA ... \n");
-                    if(vista == ANALISIS){
-                        centre_camera_to_obj(_selected_object);          
-                    }
+                    // if(vista == ANALISIS){
+                        // centre_camera_to_obj(_selected_object);          
+                    // }
                 }
             }else 
                 printf("%s: %s\n", fname, KG_MSSG_NOCAM);
@@ -284,15 +293,12 @@ void keyboard(unsigned char key, int x, int y) {
                     he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) / KG_STEP_ZOOM;
                     
                     midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
-                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;
-
-                    
+                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
                     
                     _selected_camara->proj.izq = (midx - wd) / 2;
                     _selected_camara->proj.der = (midx + wd) / 2;
                     _selected_camara->proj.alto = (midy - he) / 2;
                     _selected_camara->proj.bajo = (midy + he) / 2;
-                
                     printf("ZOOM - de la camara\n");
                 }
             }
@@ -322,25 +328,13 @@ void keyboard(unsigned char key, int x, int y) {
                 }else if(modo == CAMARA){
                     wd = (_selected_camara->proj.der - _selected_camara->proj.izq) * KG_STEP_ZOOM;
                     he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) * KG_STEP_ZOOM;
-                    
                     midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
-                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;
-
+                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
                     
-                    
-                    _selected_camara->proj.izq = (midx + wd) / 2;
-                    _selected_camara->proj.der = (midx - wd) / 2;
-                    _selected_camara->proj.alto = (midy + he) / 2;
-                    _selected_camara->proj.bajo = (midy - he) / 2;
-                    
-                    // wd = (_ortho_x_max-_ortho_x_min)*KG_STEP_ZOOM;
-                    // he = (_ortho_y_max-_ortho_y_min)*KG_STEP_ZOOM;
-                    // midx = (_ortho_x_max+_ortho_x_min)/2;
-                    // midy = (_ortho_y_max+_ortho_y_min)/2;
-                    // _ortho_x_max = midx + wd/2;
-                    // _ortho_x_min = midx - wd/2;
-                    // _ortho_y_max = midy + he/2;
-                    // _ortho_y_min = midy - he/2;
+                    _selected_camara->proj.izq = (midx - wd) / 2;
+                    _selected_camara->proj.der = (midx + wd) / 2;
+                    _selected_camara->proj.alto = (midy - he) / 2;
+                    _selected_camara->proj.bajo = (midy + he) / 2;
                     printf("ZOOM + de la camara\n");
                 }
             }
@@ -477,9 +471,7 @@ void keyboard(unsigned char key, int x, int y) {
            
     	break;
         
-        
-        
-        
+    
         
         case 'Z':
         case 'z': //  (Z,z) Deshacer
@@ -497,15 +489,11 @@ void keyboard(unsigned char key, int x, int y) {
         case 'p':
         case 'P':
             if (_selected_object != NULL){
-                proyeccion = 1 - proyeccion;
-                if(_selected_camara->tipo_proyeccion == PERSPECTIVA){
-                    printf("Modo de vista: Perspectiva\n");
-                   /* _selected_camara->projection[0] = -0.1;
-                    _selected_camara->projection[1] = 0.1;
-                    _selected_camara->projection[2] = -0.1;
-                    _selected_camara->projection[3] = 0.1;
-                    _selected_camara->projection[4] = 0.1;
-                    _selected_camara->projection[5] = 10000;*/
+                // proyeccion = 1 - proyeccion;
+                _selected_camara->tipo_proyeccion = (_selected_camara->tipo_proyeccion +1) % 2;
+                
+                if(_selected_camara->tipo_proyeccion == PARALELO){
+                    printf("Proyeccion PARALELO\n");
                     _selected_camara->proj.izq = -5.0;
                     _selected_camara->proj.der = 5.0;
                     _selected_camara->proj.alto = 5.0;
@@ -513,14 +501,8 @@ void keyboard(unsigned char key, int x, int y) {
                     _selected_camara->proj.cerca = 0;
                     _selected_camara->proj.lejos = 1000.0;
                 }
-                else if(_selected_camara->tipo_proyeccion == PARALELO){
-                    printf("Modo de vista: Paralelo\n");
-                   /* _selected_camara->projection[0] = _ortho_x_min;
-                    _selected_camara->projection[1] = _ortho_x_max;
-                    _selected_camara->projection[2] = _ortho_y_min;
-                    _selected_camara->projection[3] = _ortho_y_max;
-                    _selected_camara->projection[4] = 0;
-                    _selected_camara->projection[5] = _ortho_z_max;*/
+                else if(_selected_camara->tipo_proyeccion == PERSPECTIVA){
+                    printf("Proyeccion PERSPECTIVA\n");
                     _selected_camara->proj.izq = -0.1;
                     _selected_camara->proj.der = 0.1;
                     _selected_camara->proj.alto = 0.1;
@@ -773,7 +755,7 @@ void keyboardspecial(int key, int x, int y){
             case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,1,0);
+                        glRotated(10,0,-1,0);
                     else if(movimiento == 1)    // trasladar (1)
                         glTranslated(-1,0,0);
                     else if(movimiento == 2)    // escalar   (2)
@@ -781,7 +763,7 @@ void keyboardspecial(int key, int x, int y){
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR){
-                            glRotated(10,0,1,0);
+                            glRotated(10,0,-1,0);
                         }else if(movimiento == TRASLADAR){
                             glTranslated(1,0,0);
                         }else{
@@ -792,7 +774,6 @@ void keyboardspecial(int key, int x, int y){
                         modo_analisis(0,-1);
                     }
                 }
-                
                 printf("RIGHT \n");
                 break;
                 
@@ -800,7 +781,7 @@ void keyboardspecial(int key, int x, int y){
             case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,-1,0);
+                        glRotated(10,0,1,0);
                     else if(movimiento == 1)    // trasladar (1)
                         glTranslated(1,0,0);
                     else if(movimiento == 2)    // escalar   (2)
@@ -808,7 +789,7 @@ void keyboardspecial(int key, int x, int y){
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR){
-                            glRotated(10,0,-1,0);
+                            glRotated(10,0,1,0);
                         }else if(movimiento == TRASLADAR){
                             glTranslated(-1,0,0);
                         }else{
@@ -819,7 +800,6 @@ void keyboardspecial(int key, int x, int y){
                         modo_analisis(0,1);
                     }
                 }
-                
                 printf("LEFT \n");
                 break;
                 
@@ -829,7 +809,7 @@ void keyboardspecial(int key, int x, int y){
                     if(movimiento == 0)         // rotar     (0)
                         glRotated(10,0,0,1);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,1);
+                        glTranslated(0,0,-1);
                     else if(movimiento == 2)    // escalar   (2)
                         glScaled(1,1,1.1);
                 }else if(modo == CAMARA){
@@ -860,7 +840,7 @@ void keyboardspecial(int key, int x, int y){
                     if(movimiento == 0)         // rotar     (0)
                         glRotated(10,0,0,-1);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,-1);
+                        glTranslated(0,0,1);
                     else if(movimiento == 2)    // escalar   (2)
                         glScaled(1,1,0.9);
                 }else if(modo == CAMARA){
@@ -1105,3 +1085,5 @@ void keyboardspecial(int key, int x, int y){
         }
     }    
 }  
+
+
