@@ -264,7 +264,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Reducir el volumen de visualización
             // Escalar - en todos los ejes (caso de objetos) o disminuir volumen de vision (caso camara)
             if(_selected_object!=NULL){
-                if(modo == OBJETO){
+                if(modo == OBJETO || modo  == CAMARAOBJETO){
                     elemM *m = _selected_object->mptr;
                     glMatrixMode(GL_MODELVIEW);
                     glLoadMatrixd(m->M);
@@ -276,24 +276,24 @@ void keyboard(unsigned char key, int x, int y) {
                     
                     sig_matriz->sigPtr = m;
                     _selected_object->mptr = sig_matriz;
+                    printf("ZOOM - del objeto\n");
                     
                 }else if(modo == CAMARA){      
 
-                    // _selected_camara->proj.izq = _selected_camara->proj.izq - 0.01;
-                    // _selected_camara->proj.der = _selected_camara->proj.der - 0.01;
-                    // _selected_camara->proj.cerca = _selected_camara->proj.cerca - 0.01;
-                    // _selected_camara->proj.lejos = _selected_camara->proj.lejos - 0.01;
-                    // _selected_camara->proj.alto = _selected_camara->proj.alto - 0.01;
-                    // _selected_camara->proj.bajo = _selected_camara->proj.bajo - 0.01;
+                    wd = (_selected_camara->proj.der - _selected_camara->proj.izq) / KG_STEP_ZOOM;
+                    he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) / KG_STEP_ZOOM;
                     
-                    wd=(_ortho_x_max-_ortho_x_min)/KG_STEP_ZOOM;
-                    he=(_ortho_y_max-_ortho_y_min)/KG_STEP_ZOOM;
-                    midx = (_ortho_x_max+_ortho_x_min)/2;
-                    midy = (_ortho_y_max+_ortho_y_min)/2;
-                    _ortho_x_max = midx + wd/2;
-                    _ortho_x_min = midx - wd/2;
-                    _ortho_y_max = midy + he/2;
-                    _ortho_y_min = midy - he/2;
+                    midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
+                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;
+
+                    
+                    
+                    _selected_camara->proj.izq = (midx - wd) / 2;
+                    _selected_camara->proj.der = (midx + wd) / 2;
+                    _selected_camara->proj.alto = (midy - he) / 2;
+                    _selected_camara->proj.bajo = (midy + he) / 2;
+                
+                    printf("ZOOM - de la camara\n");
                 }
             }
             else
@@ -306,7 +306,7 @@ void keyboard(unsigned char key, int x, int y) {
             //  Escalar + en todos los ejes (caso de objetos) o aumentar volumen de visión (caso cámara)
             /*Increase the projection plane; compute the new dimensions*/
             if(_selected_object!=NULL){
-                if(modo == OBJETO){ 
+                if(modo == OBJETO || modo  == CAMARAOBJETO){ 
                     elemM *m = _selected_object->mptr;
                     glMatrixMode(GL_MODELVIEW);
                     glLoadMatrixd(m->M);
@@ -318,22 +318,30 @@ void keyboard(unsigned char key, int x, int y) {
                     
                     sig_matriz->sigPtr = m;
                     _selected_object->mptr = sig_matriz;
+                    printf("ZOOM + del objeto\n");
                 }else if(modo == CAMARA){
-                    // _selected_camara->proj.izq = _selected_camara->proj.izq + 0.01;
-                    // _selected_camara->proj.der = _selected_camara->proj.der + 0.01;
-                    // _selected_camara->proj.cerca = _selected_camara->proj.cerca + 0.01;
-                    // _selected_camara->proj.lejos = _selected_camara->proj.lejos + 0.01;
-                    // _selected_camara->proj.alto = _selected_camara->proj.alto + 0.01;
-                    // _selected_camara->proj.bajo = _selected_camara->proj.bajo + 0.01;
+                    wd = (_selected_camara->proj.der - _selected_camara->proj.izq) * KG_STEP_ZOOM;
+                    he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) * KG_STEP_ZOOM;
                     
-                    wd=(_ortho_x_max-_ortho_x_min)*KG_STEP_ZOOM;
-                    he=(_ortho_y_max-_ortho_y_min)*KG_STEP_ZOOM;
-                    midx = (_ortho_x_max+_ortho_x_min)/2;
-                    midy = (_ortho_y_max+_ortho_y_min)/2;
-                    _ortho_x_max = midx + wd/2;
-                    _ortho_x_min = midx - wd/2;
-                    _ortho_y_max = midy + he/2;
-                    _ortho_y_min = midy - he/2;
+                    midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
+                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;
+
+                    
+                    
+                    _selected_camara->proj.izq = (midx + wd) / 2;
+                    _selected_camara->proj.der = (midx - wd) / 2;
+                    _selected_camara->proj.alto = (midy + he) / 2;
+                    _selected_camara->proj.bajo = (midy - he) / 2;
+                    
+                    // wd = (_ortho_x_max-_ortho_x_min)*KG_STEP_ZOOM;
+                    // he = (_ortho_y_max-_ortho_y_min)*KG_STEP_ZOOM;
+                    // midx = (_ortho_x_max+_ortho_x_min)/2;
+                    // midy = (_ortho_y_max+_ortho_y_min)/2;
+                    // _ortho_x_max = midx + wd/2;
+                    // _ortho_x_min = midx - wd/2;
+                    // _ortho_y_max = midy + he/2;
+                    // _ortho_y_min = midy - he/2;
+                    printf("ZOOM + de la camara\n");
                 }
             }
             else
@@ -659,7 +667,6 @@ void keyboardspecial(int key, int x, int y){
         if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
             m = _selected_object->mptr;
-            
             if(referencia == LOCAL){         // Referencia LOCAL
                glLoadMatrixd(m->M);
             }if(referencia ==GLOBAL){        // referencia GLOBAL
@@ -1098,5 +1105,3 @@ void keyboardspecial(int key, int x, int y){
         }
     }    
 }  
-
-
