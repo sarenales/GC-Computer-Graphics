@@ -150,25 +150,25 @@ typedef struct {
  * 16 elems and a pointer   *
  ****************************/
 typedef struct elemM{
-    GLdouble M[16];
+    GLfloat M[16];
     struct elemM *sigPtr;
 } elemM;
 
 typedef struct proy{
-  //  GLdouble angulo;
-    GLdouble cerca; // near
-    GLdouble lejos; // far 
-    GLdouble bajo; // bottom
-    GLdouble alto; // top 
-    GLdouble izq; //left
-    GLdouble der; //right
+  //  GLfloat angulo;
+    GLfloat cerca; // near
+    GLfloat lejos; // far 
+    GLfloat bajo; // bottom
+    GLfloat alto; // top 
+    GLfloat izq; //left
+    GLfloat der; //right
 }proy;
 
 
 typedef struct camara{
-    GLdouble M[16];                     /* the csr matrix of the camera*/
-    GLdouble Mobj[16];                  /* the matrix of the obj asociated */
-    GLdouble Minv[16];
+    GLfloat M[16];                     /* the csr matrix of the camera*/
+    GLfloat Mobj[16];                  /* the matrix of the obj asociated */
+    GLfloat Minv[16];
     int tipo_proyeccion;                /* projection type */
     GLint num_vertices;                 /* number of vertices in the camara*/
     vertex *vertex_table;               /* table of vertices */
@@ -186,11 +186,11 @@ typedef struct camara{
  *  source of the material  *
  ****************************/
 typedef struct material{
-    GLdouble amb[4];    /*ambiente RGB*/
-    GLdouble dif[4];    /*diffuse RGB*/
-    GLdouble spec[4];   /*specular RGB*/
-    GLdouble pos[4];     /*position */
-    GLdouble shiny[1];     /*shiniess*/
+    GLfloat amb[4];    /*ambiente RGB*/
+    GLfloat dif[4];    /*diffuse RGB*/
+    GLfloat spec[4];   /*specular RGB*/
+    GLfloat pos[4];     /*position */
+    GLfloat shiny[1];     /*shiniess*/
 } material;
 
 /****************************
@@ -217,15 +217,15 @@ typedef struct object3d object3d;
  *  source of light         *
  ****************************/
 typedef struct iluminacion_objetos{
-    GLdouble diffuse[4];    // color del material cuando esta iluminao directamente
-    GLdouble ambient[4];    // colo del material cuando esta en sombra
-    GLdouble specular[4];   // colo del reflejo cuando esta iluminao directamente
-    GLdouble position[4];   // cantidad de brillo especular del material
+    GLfloat diffuse[4];    // color del material cuando esta iluminao directamente
+    GLfloat ambient[4];    // color del material cuando esta en sombra
+    GLfloat specular[4];   // colo del reflejo cuando esta iluminao directamente (ex: cuando una manzana se le da mucha luz brilla)
+    GLfloat position[4];   // cantidad de brillo especular del material
     GLint activado;
     GLint tipo_luz;     /* none, sol, bombilla, foco o focoobjeto*/
-    GLdouble cut_off;
-    GLdouble objeto_luz[16];   
-    GLdouble spot_direction[3];
+    GLfloat cut_off;
+    GLfloat objeto_luz[16];   
+    GLfloat spot_direction[3];
 } iluminacion_objetos;
 
 
