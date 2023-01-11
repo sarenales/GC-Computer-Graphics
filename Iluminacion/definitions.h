@@ -94,6 +94,9 @@
 #define FOCO                                2
 #define FOCO_OBJETO                         3
 
+#define FLAT                                0
+#define SMOOTH                              1
+
 #define PATHCAM                             "camaraprincipal.obj"
 #define LIGHTPATH                           "lightsource.obj"
 
