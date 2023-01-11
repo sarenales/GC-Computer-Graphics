@@ -29,6 +29,7 @@ extern int modo;
 extern int proyeccion;                  
 extern int referencia ; 
 
+extern int flat_smooth;
 extern int luz;
 extern int _selected_light; 
 extern iluminacion_objetos global_lights[4]; 
@@ -557,17 +558,13 @@ void display(void) {
 				if(aux_obj != _selected_object){
 					glMultMatrixf(aux_obj->mptr->M);
 					for (f = 0; f < aux_obj->num_faces; f++) {	
+					
 						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 						glCullFace(GL_FRONT);
 						glEnable(GL_CULL_FACE);
 						glBegin(GL_POLYGON);
 						for (v = 0; v < aux_obj->face_table[f].num_vertices; v++) {
 							v_index = aux_obj->face_table[f].vertex_table[v];
-							
-							// if(luz == ON){
-								// glNormal3d();
-							// }
-							
 							glVertex3d(aux_obj->vertex_table[v_index].coord.x,
 									aux_obj->vertex_table[v_index].coord.y,
 									aux_obj->vertex_table[v_index].coord.z);
@@ -583,23 +580,23 @@ void display(void) {
 				for (f = 0; f < aux_obj->num_faces; f++) {
 						v_aux = aux_obj->face_table[f].vertex_table[0];
 						
-						// if(producto_escalar(aux_obj->vertex_table[v_aux].coord, aux_obj->face_table[f].normal,
-							// aux_obj->mptr->M, camara_aux->Minv) > 0.0){
-	
+						int a = poligono_delantero(aux_obj, aux_obj->face_table[f]);
+						if(a){
 							glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
 							glCullFace(GL_FRONT);
 							glEnable(GL_CULL_FACE);							
 							glBegin(GL_POLYGON);
 							
-							if(luz == ON){
+							if(flat_smooth == FLAT){
 								glNormal3d(aux_obj->face_table[f].normal.x,
 									aux_obj->face_table[f].normal.y,
 									aux_obj->face_table[f].normal.z);
 							}
 							for (v = 0; v < aux_obj->face_table[f].num_vertices; v++) {
+								
 								v_index = aux_obj->face_table[f].vertex_table[v];
 								
-								if(luz == ON){
+								if(flat_smooth == SMOOTH){
 									glNormal3d(aux_obj->face_table[v_index].normal.x,
 									aux_obj->face_table[v_index].normal.y,
 									aux_obj->face_table[v_index].normal.z);
@@ -611,7 +608,7 @@ void display(void) {
 							}
 							glEnd();
 							glDisable(GL_CULL_FACE);
-						//}
+						}
 				}				
 			}
         aux_obj = aux_obj->next; 
@@ -648,14 +645,23 @@ void display(void) {
 				glMultMatrixf(aux_camara->M);
 				/* Draw the camera; for each face create a new polygon with the corresponding vertices */
 				for (f = 0; f < aux_camara->num_faces; f++) {
-                        glBegin(GL_POLYGON);
-                        for (v = 0; v < aux_camara->face_table[f].num_vertices; v++) {
-                            v_index = aux_camara->face_table[f].vertex_table[v];
-                            glVertex3d(aux_camara->vertex_table[v_index].coord.x,
-                                    aux_camara->vertex_table[v_index].coord.y,
-                                    aux_camara->vertex_table[v_index].coord.z);
-                        }
-                        glEnd();  
+					int a = poligono_delantero(aux_obj, aux_obj->face_table[f]);
+					if(a){
+						if (flat_smooth == FLAT){
+							glNormal3f(aux_camara->face_table[f].normal.x,aux_camara->face_table[f].normal.y,aux_camara->face_table[f].normal.z);
+						}
+						glBegin(GL_POLYGON);
+						for (v = 0; v < aux_camara->face_table[f].num_vertices; v++) {
+							v_index = aux_camara->face_table[f].vertex_table[v];
+							if (flat_smooth == SMOOTH){
+								glNormal3f(aux_camara->vertex_table[v_index].normal.x,aux_camara->vertex_table[v_index].normal.y,aux_camara->vertex_table[v_index].normal.z);
+							}
+							glVertex3d(aux_camara->vertex_table[v_index].coord.x,
+									aux_camara->vertex_table[v_index].coord.y,
+									aux_camara->vertex_table[v_index].coord.z);
+						}
+						glEnd();  
+					}
                     
 				}
 			}
