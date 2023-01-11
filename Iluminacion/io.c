@@ -15,9 +15,9 @@ extern object3d * _selected_object;
 extern camara *_first_camara;
 extern camara *_selected_camara;
 
-extern GLdouble _ortho_x_min,_ortho_x_max;
-extern GLdouble _ortho_y_min,_ortho_y_max;
-extern GLdouble _ortho_z_min,_ortho_z_max;
+extern GLfloat _ortho_x_min,_ortho_x_max;
+extern GLfloat _ortho_y_min,_ortho_y_max;
+extern GLfloat _ortho_z_min,_ortho_z_max;
 
 extern int modo; 
 extern int referencia ; 
@@ -38,8 +38,8 @@ int i;
  * función que calcula la distancia entre la camara y el objeto seleccionados
  * @return la distancia entre ambos
  */
-GLdouble distancia_camara_objeto(){
-    GLdouble px, py, pz;
+GLfloat distancia_camara_objeto(){
+    GLfloat px, py, pz;
 
     px = _selected_object->mptr->M[12] - _selected_camara->Minv[12];
     py = _selected_object->mptr->M[13] - _selected_camara->Minv[13];
@@ -120,11 +120,11 @@ void keyboard(unsigned char key, int x, int y) {
     int read = 0;
     object3d *auxiliar_object = 0;
     camara *auxiliar_camara = 0;
-    GLdouble wd,he,midx,midy;
+    GLfloat wd,he,midx,midy;
     vector3* e ;
     
     char* fname;
-    GLdouble matriz_rotada[16];
+    GLfloat matriz_rotada[16];
     elemM *m,*sig_matriz;
     
     switch (key) {
@@ -162,7 +162,7 @@ void keyboard(unsigned char key, int x, int y) {
                     // cargue identidad en model view
                     glMatrixMode(GL_MODELVIEW);  // applies subsequent matrix operations to the projection matiz stack
                     glLoadIdentity();            // carga la matriz identidad
-                    glGetDoublev(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M); // asocia la matriz a auxiliar
+                    glGetFloatv(GL_MODELVIEW_MATRIX, auxiliar_object->mptr->M); // asocia la matriz a auxiliar
                     
                     if(modo == CAMARA && vista == ANALISIS){
                         centre_camera_to_obj(_selected_object);  
@@ -201,11 +201,11 @@ void keyboard(unsigned char key, int x, int y) {
                     /*The selection is circular, thus if we move out of the list we go back to the first element*/
                     if (_selected_object == 0)
                         _selected_object = _first_object;
-                    /*if(vista == ANALISIS && modo == CAMARA)
+                    if(vista == ANALISIS && modo == CAMARA)
                         centre_camera_to_obj(_selected_object);
-                    else if  (modo == CAMARAOBJETO){
+                    // else if  (modo == CAMARAOBJETO){
                     
-                    }*/
+                    // }
                 //}                
             }
             else {
@@ -224,9 +224,9 @@ void keyboard(unsigned char key, int x, int y) {
                         _selected_camara = _selected_camara->next;
                     }
                     printf("Siguiente CAMARA ... \n");
-                    // if(vista == ANALISIS){
-                        // centre_camera_to_obj(_selected_object);          
-                    // }
+                    if(vista == ANALISIS){
+                        centre_camera_to_obj(_selected_object);          
+                    }
                 }
             }else 
                 printf("%s: %s\n", fname, KG_MSSG_NOCAM);
@@ -276,9 +276,9 @@ void keyboard(unsigned char key, int x, int y) {
                 if(modo == OBJETO || modo  == CAMARAOBJETO){
                     elemM *m = _selected_object->mptr;
                     glMatrixMode(GL_MODELVIEW);
-                    glLoadMatrixd(m->M);
-                    glScaled(0.8,0.8,0.8);
-                    glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+                    glLoadMatrixf(m->M);
+                    glScalef(0.8,0.8,0.8);
+                    glGetFloatv(GL_MODELVIEW_MATRIX, matriz_rotada);
                     sig_matriz = malloc(sizeof (elemM));
                     for(i = 0; i<16;i++)
                         sig_matriz->M[i] = matriz_rotada[i];
@@ -315,9 +315,9 @@ void keyboard(unsigned char key, int x, int y) {
                 if(modo == OBJETO || modo  == CAMARAOBJETO){ 
                     elemM *m = _selected_object->mptr;
                     glMatrixMode(GL_MODELVIEW);
-                    glLoadMatrixd(m->M);
-                    glScaled(1.25,1.25,1.25);
-                    glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada);
+                    glLoadMatrixf(m->M);
+                    glScalef(1.25,1.25,1.25);
+                    glGetFloatv(GL_MODELVIEW_MATRIX, matriz_rotada);
                     sig_matriz = malloc(sizeof (elemM));
                     for(i = 0; i<16;i++)
                         sig_matriz->M[i] = matriz_rotada[i];
@@ -640,8 +640,8 @@ void keyboardspecial(int key, int x, int y){
     
     char* fname = malloc(sizeof (char)*128); /* Note that scanf adds a null character at the end of the vector*/
     int read = 0;
-    GLdouble wd,he,midx,midy;
-    GLdouble matriz_rotada[16];
+    GLfloat wd,he,midx,midy;
+    GLfloat matriz_rotada[16];
     elemM *m, *sig_matriz;
     if(_selected_object!=NULL){
         glMatrixMode(GL_MODELVIEW);
@@ -650,7 +650,7 @@ void keyboardspecial(int key, int x, int y){
         {
             m = _selected_object->mptr;
             if(referencia == LOCAL){         // Referencia LOCAL
-               glLoadMatrixd(m->M);
+               glLoadMatrixf(m->M);
             }if(referencia ==GLOBAL){        // referencia GLOBAL
                glLoadIdentity();
             }
@@ -658,7 +658,7 @@ void keyboardspecial(int key, int x, int y){
         else if(modo == CAMARA) // visualice camara
         {
             if(vista == VUELO)         // Referenciavista modo vuelo
-                glLoadMatrixd(_selected_camara->M);
+                glLoadMatrixf(_selected_camara->M);
             if(vista == ANALISIS){          // modo analisis 
                glLoadIdentity();
                //mirar_obj_selec();
@@ -675,17 +675,17 @@ void keyboardspecial(int key, int x, int y){
             case 101: // UP  Trasladar +Y; Escalar + Y; Rotar +X 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,1,0,0);
+                        glRotatef(10,1,0,0);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,1,0);
+                        glTranslatef(0,1,0);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1.1,1);
+                        glScalef(1,1.1,1);
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR ) {
-                           glRotated(10,1,0,0);
+                           glRotatef(10,1,0,0);
                         }else if(movimiento == TRASLADAR){
-                            glTranslated(0,1,0);
+                            glTranslatef(0,1,0);
                         }else if(movimiento == ESCALAR){
                             _selected_camara->proj.alto -= 0.01;
                             _selected_camara->proj.bajo += 0.01;
@@ -695,30 +695,30 @@ void keyboardspecial(int key, int x, int y){
                         // glLoadIdentity();
                         
                         
-                        // glTranslated(_selected_object->mptr->M[12], 
+                        // glTranslatef(_selected_object->mptr->M[12], 
                                     // _selected_object->mptr->M[13],
                                     // _selected_object->mptr->M[14]);
                         
-                        // glRotated(10,-1,0,0);
+                        // glRotatef(10,-1,0,0);
                         
                         
-                        // glTranslated((-1)*(_selected_object->mptr->M[12]), 
+                        // glTranslatef((-1)*(_selected_object->mptr->M[12]), 
                                     // (-1)*(_selected_object->mptr->M[13]),
                                     // (-1)*(_selected_object->mptr->M[14]));
                         
-                        // glMultMatrixd(_selected_camara->M);
+                        // glMultMatrixf(_selected_camara->M);
                         
                         
                         
-                        // glLoadMatrixd(_selected_camara->Minv);
+                        // glLoadMatrixf(_selected_camara->Minv);
                         
-                        // glTranslated(_selected_object->mptr->M[12], 
+                        // glTranslatef(_selected_object->mptr->M[12], 
                                     // _selected_object->mptr->M[13],
                                     // _selected_object->mptr->M[14]);
                         
-                        // glRotated(10,-1,0,0);
+                        // glRotatef(10,-1,0,0);
                         
-                        // glTranslated((-1)*(_selected_object->mptr->M[12]), 
+                        // glTranslatef((-1)*(_selected_object->mptr->M[12]), 
                                     // (-1)*(_selected_object->mptr->M[13]),
                                     // (-1)*(_selected_object->mptr->M[14]));
                             
@@ -730,17 +730,17 @@ void keyboardspecial(int key, int x, int y){
             case 103: // DOWN Trasladar -Y; Escalar - Y;  Rotar -X 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,-1,0,0);
+                        glRotatef(10,-1,0,0);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,-1,0);
+                        glTranslatef(0,-1,0);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,0.9,1);
+                        glScalef(1,0.9,1);
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR ){
-                            glRotated(10,-1,0,0);
+                            glRotatef(10,-1,0,0);
                         }else if(movimiento == TRASLADAR){
-                            glTranslated(0,-1,0);
+                            glTranslatef(0,-1,0);
                         }else{
                             _selected_camara->proj.alto += 0.01;
                             _selected_camara->proj.bajo -= 0.01;
@@ -755,17 +755,17 @@ void keyboardspecial(int key, int x, int y){
             case 102: // RIGHT Trasladar +X; Escalar +X;  Rotar +Y 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,-1,0);
+                        glRotatef(10,0,-1,0);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(-1,0,0);
+                        glTranslatef(-1,0,0);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1.1,1,1);
+                        glScalef(1.1,1,1);
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR){
-                            glRotated(10,0,-1,0);
+                            glRotatef(10,0,-1,0);
                         }else if(movimiento == TRASLADAR){
-                            glTranslated(1,0,0);
+                            glTranslatef(1,0,0);
                         }else{
                             _selected_camara->proj.izq -= 0.01;
                             _selected_camara->proj.der += 0.01;
@@ -781,17 +781,17 @@ void keyboardspecial(int key, int x, int y){
             case 100: // LEFT  Trasladar -X; Escalar -X;  Rotar -Y 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,1,0);
+                        glRotatef(10,0,1,0);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(1,0,0);
+                        glTranslatef(1,0,0);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(0.9,1,1);
+                        glScalef(0.9,1,1);
                 }else if(modo == CAMARA){
                     if(vista == VUELO){
                         if(movimiento == ROTAR){
-                            glRotated(10,0,1,0);
+                            glRotatef(10,0,1,0);
                         }else if(movimiento == TRASLADAR){
-                            glTranslated(-1,0,0);
+                            glTranslatef(-1,0,0);
                         }else{
                             _selected_camara->proj.izq += 0.01;
                             _selected_camara->proj.der -= 0.01;
@@ -807,26 +807,26 @@ void keyboardspecial(int key, int x, int y){
             case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z   
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,0,1);
+                        glRotatef(10,0,0,1);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,-1);
+                        glTranslatef(0,0,-1);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1,1.1);
+                        glScalef(1,1,1.1);
                 }else if(modo == CAMARA){
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
                             // para no pasarnos
-                            GLdouble dist = distancia_camara_objeto();
+                            GLfloat dist = distancia_camara_objeto();
                             if(dist > 1.0){
-                                glTranslated(0,0,1);
+                                glTranslatef(0,0,1);
                             }else{
                                 centre_camera_to_obj(_selected_object);
                             }
                         }else{
-                            glTranslated(0,0,1);
+                            glTranslatef(0,0,1);
                         }
                     }else if(movimiento == ROTAR){
-                        glRotated(10,0,0,1);
+                        glRotatef(10,0,0,1);
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.cerca -= 0.01;
                         _selected_camara->proj.lejos -= 0.01;
@@ -838,26 +838,26 @@ void keyboardspecial(int key, int x, int y){
             case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
-                        glRotated(10,0,0,-1);
+                        glRotatef(10,0,0,-1);
                     else if(movimiento == 1)    // trasladar (1)
-                        glTranslated(0,0,1);
+                        glTranslatef(0,0,1);
                     else if(movimiento == 2)    // escalar   (2)
-                        glScaled(1,1,0.9);
+                        glScalef(1,1,0.9);
                 }else if(modo == CAMARA){
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
                             // para no pasarnos
-                            GLdouble dist = distancia_camara_objeto();
+                            GLfloat dist = distancia_camara_objeto();
                             if(dist < 100.0){
-                                glTranslated(0,0,-1);
+                                glTranslatef(0,0,-1);
                             }else{
                                 centre_camera_to_obj(_selected_object);
                             }
                         }else{
-                            glTranslated(0,0,-1);
+                            glTranslatef(0,0,-1);
                         }
                     }else if(movimiento == ROTAR){
-                        glRotated(10,0,0,-1);
+                        glRotatef(10,0,0,-1);
                     }else if(movimiento == ESCALAR){
                         _selected_camara->proj.cerca += 0.01;
                         _selected_camara->proj.lejos += 0.01;
@@ -1061,9 +1061,9 @@ void keyboardspecial(int key, int x, int y){
         if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
             if(referencia == GLOBAL)         // Referencia GLOBAL
-                glMultMatrixd(m->M);
+                glMultMatrixf(m->M);
                         
-            glGetDoublev(GL_MODELVIEW_MATRIX, matriz_rotada); 
+            glGetFloatv(GL_MODELVIEW_MATRIX, matriz_rotada); 
             
             sig_matriz = malloc(sizeof (elemM));            
             for(i =0; i<16; i++)
@@ -1077,9 +1077,9 @@ void keyboardspecial(int key, int x, int y){
         else if(modo == CAMARA)
         {
             // if(vista == ANALISIS)       
-                // glMultMatrixd(_selected_camara->M);
+                // glMultMatrixf(_selected_camara->M);
         
-            glGetDoublev(GL_MODELVIEW_MATRIX, _selected_camara->M);    
+            glGetFloatv(GL_MODELVIEW_MATRIX, _selected_camara->M);    
         
             glutPostRedisplay();
         }
