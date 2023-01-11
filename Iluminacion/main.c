@@ -45,8 +45,9 @@ int movimiento = TRASLADAR;
 int proyeccion = PERSPECTIVA;               /* perspectiva, paralela*/
 int vista = VUELO;                          /* vuelo, analisis --> para cam*/
 
-int luz = OFF;
+int luz = ON;
 
+int flat_smooth = 0;
 
 
 
@@ -106,10 +107,10 @@ int main(int argc, char** argv) {
 	glEnable(GL_LIGHTING);   // activar el cáclulo de la iluminación
     glEnable(GL_DEPTH_TEST); // activar el test de profundidad (Z-buffer)
 
-    // if (flat_smooth) 
-        // glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
-    // else 
-        // glShadeModel(GL_FLAT);  // basta con vector normal del poligono
+    if (flat_smooth) 
+        glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
+    else 
+        glShadeModel(GL_FLAT);  // basta con vector normal del poligono
     
 
 
