@@ -544,21 +544,22 @@ void keyboard(unsigned char key, int x, int y) {
 
         case 'a':
         case 'A':
-            if(modo != ILUMINACION &&  luz == ON){
-                printf("Elemento ha cambiado a iluminacion\n");
-                modo = ILUMINACION;
-                if(movimiento == ESCALAR){
-                    movimiento = TRASLADAR;
-                    printf("El escalado no existe en iluminacion, se ha cambiado a traslacion \n");
-                }
-            }else if(luz == OFF){
-                printf("Activa la iluminacion primero.\n");
-            }
+            // if(modo != ILUMINACION &&  luz == ON){
+                // printf("Elemento ha cambiado a iluminacion\n");
+                // modo = ILUMINACION;
+                // if(movimiento == ESCALAR){
+                    // movimiento = TRASLADAR;
+                    // printf("El escalado no existe en iluminacion, se ha cambiado a traslacion \n");
+                // }
+            // }else if(luz == OFF){
+                // printf("Activa la iluminacion primero.\n");
+            // }
+            printf("No se ha podido activar las ");
             
         break;
         
         case '0':
-            //add_lights();
+            add_lights();
             break;
         
         case '1':
@@ -867,7 +868,7 @@ void keyboardspecial(int key, int x, int y){
                 break;
 
                 case GLUT_KEY_F1:
-                    if(luz==ON) {
+                    if(luz==ON  && _selected_object!=0) {
                         switch (global_lights[0].activado) {
                             case 0:
                                 global_lights[0].activado = 1;
@@ -886,7 +887,7 @@ void keyboardspecial(int key, int x, int y){
                     break;
 
                 case GLUT_KEY_F2:
-                    if(luz==ON) {
+                    if(luz==ON  && _selected_object!=0) {
                         switch (global_lights[1].activado) {
                             case 0:
                                 global_lights[1].activado = 1;
@@ -924,7 +925,7 @@ void keyboardspecial(int key, int x, int y){
                     break;
 
                 case GLUT_KEY_F4:
-                    if(luz==ON) {
+                    if(luz==ON  && _selected_object!=0) {
                         switch (global_lights[3].activado) {
                             case 0:
                                 global_lights[3].activado = 1;
@@ -1058,6 +1059,18 @@ void keyboardspecial(int key, int x, int y){
 
                 
         }
+        
+        if(modo == CAMARAOBJETO  && _selected_object!=0){
+            add_camara_mode_obj(_selected_object);
+            m_foco(2);
+            m_foco(3);
+        }else if(modo == CAMARA){
+            m_foco(3);
+        }else if(modo == OBJETO  && _selected_object!=0){
+            m_foco(2);
+        }
+        
+        
         if(modo == OBJETO || modo == CAMARAOBJETO) // visualise obj
         {
             if(referencia == GLOBAL)         // Referencia GLOBAL
