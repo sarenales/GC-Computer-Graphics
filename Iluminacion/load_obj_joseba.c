@@ -284,5 +284,3 @@ void load_presentation(){
     read_wavefront(PATHCAM, _camara_objeto);
     printf("Lee correctamente la camara inicial. \n");
 }
-
-
