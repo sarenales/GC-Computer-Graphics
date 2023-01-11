@@ -8,6 +8,7 @@
 #include "definitions.h"
 #include "load_obj.h"
 #include "camara.h"
+#include "iluminacion.h"
 
 /** GLOBAL VARIABLES **/
 
@@ -24,6 +25,7 @@ object3d * light_object = 0;
 camara *_first_camara = 0;
 camara *_selected_camara = 0;
 camara *_object_camara = 0;
+
 
 iluminacion_objetos global_lights[8];
 
@@ -62,7 +64,10 @@ void initialization (){
     _window_ratio = (GLfloat) KG_WINDOW_WIDTH / (GLfloat) KG_WINDOW_HEIGHT;
 
     /*Definition of the background color*/
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    //glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    glClearColor(KG_COL_BACK_R, KG_COL_BACK_G, KG_COL_BACK_B, KG_COL_BACK_A);
+
     _selected_camara =(camara*) malloc(sizeof(camara));
     
     
@@ -118,6 +123,7 @@ int main(int argc, char** argv) {
     initialization();
     load_presentation();
     default_cameras();
+    inicializar_luces();
 
     /* start the main loop */
     glutMainLoop();
