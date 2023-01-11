@@ -6,7 +6,6 @@
 #include "definitions.h"
 
 #define MAXLINE 200
-#define PATHCAM "camaraprincipal.obj"
 extern object3d *_camara_objeto;
 
 /*
@@ -34,6 +33,91 @@ static int sreadint2(char * lerroa, int * zenbakiak) {
     }
 printf("%d numbers in the line\n",kont);
     return (kont);
+}
+
+
+/**
+ * función para obtener el vector normal de una superficie dados 3 puntos ordenados
+ * @param index1 indice al punto 1
+ * @param index2 indice al punto 2
+ * @param index3 indice al punto 3
+ * @param vertex_table la tabla de vertices de donde sacar los puntos
+ * @return
+ */
+vector3 calculate_surface_normal(int index1, int index2, int index3, vertex *vertex_table){
+    vector3 normal_vector;
+
+    vector3 u;
+    u.x = vertex_table[index2].coord.x - vertex_table[index1].coord.x;
+    u.y = vertex_table[index2].coord.y - vertex_table[index1].coord.y;
+    u.z = vertex_table[index2].coord.z - vertex_table[index1].coord.z;
+
+    vector3 v;
+    v.x = vertex_table[index3].coord.x - vertex_table[index1].coord.x;
+    v.y = vertex_table[index3].coord.y - vertex_table[index1].coord.y;
+    v.z = vertex_table[index3].coord.z - vertex_table[index1].coord.z;
+
+    normal_vector.x = (u.y * v.z) - (u.z * v.y);
+    normal_vector.y = (u.z * v.x) - (u.x * v.z);
+    normal_vector.z = (u.x * v.y) - (u.y * v.x);
+
+    return normal_vector;
+}
+/**
+ * función para calcular todos los vectores normales de un objeto 3d
+ * @param obj el objeto en cuestión
+ */
+void normal_vectors(object3d *obj){
+    GLint f, v;
+    GLint index1, index2, index3, vindex;
+    GLdouble norma;
+    vector3 vector_normal;
+
+    //inicializamos los vectores normales de los vertices
+    for(v = 0; v<obj->num_vertices; v++){
+        obj->vertex_table[v].normal = (vector3){.x = 0, .y = 0, .z = 0};
+    }
+
+    for (f = 0; f < obj->num_faces; f++){
+        index1 = obj->face_table[f].vertex_table[0];
+        index2 = obj->face_table[f].vertex_table[1];
+        index3 = obj->face_table[f].vertex_table[2];
+
+        vector_normal = calculate_surface_normal(index1, index2, index3, obj->vertex_table);
+
+        obj->face_table[f].normal = vector_normal;
+
+        norma = sqrt(pow(obj->face_table[f].normal.x, 2) +
+                     pow(obj->face_table[f].normal.y, 2) +
+                     pow(obj->face_table[f].normal.z, 2));
+
+        //canonizamos los vectores
+        obj->face_table[f].normal.x /= norma;
+        obj->face_table[f].normal.y /= norma;
+        obj->face_table[f].normal.z /= norma;
+
+        //sumamos el vector calculado a los vectores normales de los vertices de la cara
+        for(v = 0; v<obj->face_table[f].num_vertices; v++){
+            vindex = obj->face_table[f].vertex_table[v];
+            obj->vertex_table[vindex].normal.x += obj->face_table[f].normal.x;
+            obj->vertex_table[vindex].normal.y += obj->face_table[f].normal.y;
+            obj->vertex_table[vindex].normal.z += obj->face_table[f].normal.z;
+        }
+
+    }
+
+    for(v = 0; v<obj->num_vertices; v++){
+        norma = sqrt(pow(obj->vertex_table[v].normal.x, 2) +
+                     pow(obj->vertex_table[v].normal.y, 2) +
+                     pow(obj->vertex_table[v].normal.z, 2));
+
+        //canonizamos los vectores
+        obj->vertex_table[v].normal.x /= norma;
+        obj->vertex_table[v].normal.y /= norma;
+        obj->vertex_table[v].normal.z /= norma;
+    }
+
+
 }
 /**
  * @brief Function to read wavefront files (*.obj)
@@ -189,6 +273,7 @@ printf("2 pasada\n");
             object_ptr->max.z = object_ptr->vertex_table[i].coord.z;
 
     }
+    normal_vectors(object_ptr);
     return (0);
 }
 
