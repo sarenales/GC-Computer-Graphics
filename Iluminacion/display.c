@@ -36,28 +36,6 @@ extern material *mat_camara, *mat_selec, *mat_foco;
 
 void obtenerMCSR(GLfloat *M, GLfloat *MCSR);
 
-/**
- * @brief Function to calculate de matrix Mcsr of the camera
- */
-void obtenerMCSRfloat(GLfloat *M, GLfloat *MCSR){
-    MCSR[0]=M[0];
-    MCSR[1]=M[4];
-    MCSR[2]=M[8];
-    MCSR[3]=0;
-    MCSR[4]=M[1];
-    MCSR[5]=M[5];
-    MCSR[6]=M[9];
-    MCSR[7]=0;
-    MCSR[8]=M[2];
-    MCSR[9]=M[6];
-    MCSR[10]=M[10];
-    MCSR[11]=0;
-    MCSR[12]=(-1) * (M[0]*M[12]+M[1]*M[13]+M[2]*M[14]);
-    MCSR[13]=(-1) * (M[4]*M[12]+M[5]*M[13]+M[6]*M[14]);
-    MCSR[14]=(-1) * (M[8]*M[12]+M[9]*M[13]+M[10]*M[14]);
-    MCSR[15]=1;
-}
-
 
 /**
  * función para calcular el producto escalar entre la cámara y un polígono
