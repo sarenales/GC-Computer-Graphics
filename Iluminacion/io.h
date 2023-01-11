@@ -7,4 +7,3 @@ void keyboardspecial(int key, int x, int y);
 GLdouble distancia_camara_objeto();
 
 #endif // IO_H
-
