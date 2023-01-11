@@ -32,6 +32,7 @@ extern int vista;
 
 extern int movimiento; // rota = 0 ; trasladar = 1; escalar = 2;
 
+extern int flat_smooth;
 int i;
 
 /**
@@ -288,18 +289,22 @@ void keyboard(unsigned char key, int x, int y) {
                     printf("ZOOM - del objeto\n");
                     
                 }else if(modo == CAMARA){      
-
-                    wd = (_selected_camara->proj.der - _selected_camara->proj.izq) / KG_STEP_ZOOM;
-                    he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) / KG_STEP_ZOOM;
-                    
-                    midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
-                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
-                    
-                    _selected_camara->proj.izq = (midx - wd) / 2;
-                    _selected_camara->proj.der = (midx + wd) / 2;
-                    _selected_camara->proj.alto = (midy - he) / 2;
-                    _selected_camara->proj.bajo = (midy + he) / 2;
-                    printf("ZOOM - de la camara\n");
+                     GLfloat dist = distancia_camara_objeto();
+                    if(dist > 1.0){
+                        wd = (_selected_camara->proj.der - _selected_camara->proj.izq) / KG_STEP_ZOOM;
+                        he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) / KG_STEP_ZOOM;
+                        
+                        midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
+                        midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
+                        
+                        _selected_camara->proj.izq = (midx - wd) / 2;
+                        _selected_camara->proj.der = (midx + wd) / 2;
+                        _selected_camara->proj.alto = (midy - he) / 2;
+                        _selected_camara->proj.bajo = (midy + he) / 2;
+                        printf("ZOOM - de la camara\n");
+                    }else{
+                        centre_camera_to_obj(_selected_object);
+                    }
                 }
             }
             else
@@ -326,16 +331,21 @@ void keyboard(unsigned char key, int x, int y) {
                     _selected_object->mptr = sig_matriz;
                     printf("ZOOM + del objeto\n");
                 }else if(modo == CAMARA){
-                    wd = (_selected_camara->proj.der - _selected_camara->proj.izq) * KG_STEP_ZOOM;
-                    he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) * KG_STEP_ZOOM;
-                    midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
-                    midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
-                    
-                    _selected_camara->proj.izq = (midx - wd) / 2;
-                    _selected_camara->proj.der = (midx + wd) / 2;
-                    _selected_camara->proj.alto = (midy - he) / 2;
-                    _selected_camara->proj.bajo = (midy + he) / 2;
-                    printf("ZOOM + de la camara\n");
+                    GLfloat dist = distancia_camara_objeto();
+                    if(dist <  100.0){
+                        wd = (_selected_camara->proj.der - _selected_camara->proj.izq) * KG_STEP_ZOOM;
+                        he = (_selected_camara->proj.bajo - _selected_camara->proj.alto) * KG_STEP_ZOOM;
+                        midx = (_selected_camara->proj.der + _selected_camara->proj.izq) / 2;
+                        midy = (_selected_camara->proj.bajo + _selected_camara->proj.alto) / 2;                    
+                        
+                        _selected_camara->proj.izq = (midx - wd) / 2;
+                        _selected_camara->proj.der = (midx + wd) / 2;
+                        _selected_camara->proj.alto = (midy - he) / 2;
+                        _selected_camara->proj.bajo = (midy + he) / 2;
+                        printf("ZOOM + de la camara\n");
+                    }else{
+                        centre_camera_to_obj(_selected_object);
+                    }
                 }
             }
             else
@@ -513,32 +523,6 @@ void keyboard(unsigned char key, int x, int y) {
             }else{
                 printf("%s: %s \n", fname, KG_MSSG_NOOBJ);
             }
-            
-            
-            /*
-                if(modo != CAMARAOBJETO){
-                _selected_camara->tipo_proyeccion = (_selected_camara->tipo_proyeccion +1)%2;
-                
-                if(_selected_camara->tipo_proyeccion == PARALELO){
-                    printf("proyeccion paralela. \n");
-                    _selected_camara->proj.izq = -5.0;
-                    _selected_camara->proj.der = 5.0;
-                    _selected_camara->proj.alto = 5.0;
-                    _selected_camara->proj.bajo = -5.0;
-                    _selected_camara->proj.cerca = 0;
-                    _selected_camara->proj.lejos = 1000.0;
-                }else if(_selected_camara->tipo_proyeccion == PERSPECTIVA){
-                    printf("proyeccion perspectiva. \n");
-                    _selected_camara->proj.izq = -0.1;
-                    _selected_camara->proj.der = 0.1;
-                    _selected_camara->proj.alto = 0.1;
-                    _selected_camara->proj.bajo = -0.1;
-                    _selected_camara->proj.cerca = 0.1;
-                    _selected_camara->proj.lejos = 1000.0;
-                }
-                
-            }
-            */
         break;
 
 
@@ -554,7 +538,7 @@ void keyboard(unsigned char key, int x, int y) {
             // }else if(luz == OFF){
                 // printf("Activa la iluminacion primero.\n");
             // }
-            printf("No se ha podido activar las ");
+            printf("No se ha podido activar las tranformaciones a las fuentes de luz. \n ");
             
         break;
         
@@ -693,37 +677,65 @@ void keyboardspecial(int key, int x, int y){
                         }                             
                     }else{
                         modo_analisis(1,0);
-                        // glLoadIdentity();
-                        
-                        
-                        // glTranslatef(_selected_object->mptr->M[12], 
-                                    // _selected_object->mptr->M[13],
-                                    // _selected_object->mptr->M[14]);
-                        
-                        // glRotatef(10,-1,0,0);
-                        
-                        
-                        // glTranslatef((-1)*(_selected_object->mptr->M[12]), 
-                                    // (-1)*(_selected_object->mptr->M[13]),
-                                    // (-1)*(_selected_object->mptr->M[14]));
-                        
-                        // glMultMatrixf(_selected_camara->M);
-                        
-                        
-                        
-                        // glLoadMatrixf(_selected_camara->Minv);
-                        
-                        // glTranslatef(_selected_object->mptr->M[12], 
-                                    // _selected_object->mptr->M[13],
-                                    // _selected_object->mptr->M[14]);
-                        
-                        // glRotatef(10,-1,0,0);
-                        
-                        // glTranslatef((-1)*(_selected_object->mptr->M[12]), 
-                                    // (-1)*(_selected_object->mptr->M[13]),
-                                    // (-1)*(_selected_object->mptr->M[14]));
                             
                     }
+                }else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,1,0,0);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(0,1,0);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(1,1.25,1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 }
                 printf("UP \n");
                 break;
@@ -749,6 +761,63 @@ void keyboardspecial(int key, int x, int y){
                     }else{
                         modo_analisis(-1,0);
                     }
+                }else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,-1,0,0);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(0,-1,0);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(1,0.8,1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 }
                 printf("DOWN \n");
                 break;
@@ -774,6 +843,63 @@ void keyboardspecial(int key, int x, int y){
                     }else if(vista == ANALISIS){
                         modo_analisis(0,-1);
                     }
+                }else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    // glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,0,1,0);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(1,0,0);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(1.25,1,1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 }
                 printf("RIGHT \n");
                 break;
@@ -800,12 +926,69 @@ void keyboardspecial(int key, int x, int y){
                     }else{
                         modo_analisis(0,1);
                     }
+                }else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,0,-1,0);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(-1,0,0);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(0.8,1,1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 }
                 printf("LEFT \n");
                 break;
                 
                 
-            case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z   
+            case 105: // AVPAG Trasladar +Z; Escalar +Z;  Rotar +Z   (atras)
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
                         glRotatef(10,0,0,1);
@@ -816,27 +999,81 @@ void keyboardspecial(int key, int x, int y){
                 }else if(modo == CAMARA){
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
-                            // para no pasarnos
-                            GLfloat dist = distancia_camara_objeto();
-                            if(dist > 1.0){
-                                glTranslatef(0,0,1);
-                            }else{
-                                centre_camera_to_obj(_selected_object);
-                            }
-                        }else{
+                            printf("Para hacer zoom -: con el <-> \n");
+                        }
+                        else{
                             glTranslatef(0,0,1);
                         }
-                    }else if(movimiento == ROTAR){
+                    }
+                    else if(movimiento == ROTAR && vista == VUELO){
                         glRotatef(10,0,0,1);
-                    }else if(movimiento == ESCALAR){
+                    }else if(movimiento == ESCALAR && vista == VUELO){
                         _selected_camara->proj.cerca -= 0.01;
                         _selected_camara->proj.lejos -= 0.01;
                     }
+                }
+                else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,0,0,1);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(0,0,1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(1,1,1.25);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 }                
                 printf("AVPAG \n");
                 break;
                 
-            case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z 
+            case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z  (alante)
                 if(modo == OBJETO || modo == CAMARAOBJETO){
                     if(movimiento == 0)         // rotar     (0)
                         glRotatef(10,0,0,-1);
@@ -847,22 +1084,76 @@ void keyboardspecial(int key, int x, int y){
                 }else if(modo == CAMARA){
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
-                            // para no pasarnos
-                            GLfloat dist = distancia_camara_objeto();
-                            if(dist < 100.0){
-                                glTranslatef(0,0,-1);
-                            }else{
-                                centre_camera_to_obj(_selected_object);
-                            }
+                            printf("Para hacer zoom +: con el <+> \n");
                         }else{
                             glTranslatef(0,0,-1);
                         }
-                    }else if(movimiento == ROTAR){
+                    }
+                    else if(movimiento == ROTAR && vista == VUELO){
                         glRotatef(10,0,0,-1);
-                    }else if(movimiento == ESCALAR){
+                    }
+                    else if(movimiento == ESCALAR && vista == VUELO){
                         _selected_camara->proj.cerca += 0.01;
                         _selected_camara->proj.lejos += 0.01;
                     }
+                }
+                else if(modo == ILUMINACION){
+                    GLfloat matriz_anterior[16];
+                    GLfloat matriz_nueva[16];
+                    // for(int i = 0; i < 16; i++){
+                        // matriz_anterior[i] = lights[luz].matrix[i];
+                    // }
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadMatrixf(matriz_anterior);
+                    
+                    if(movimiento == ROTAR){
+                        if(global_lights[_selected_light].tipo_luz == BOMBILLA || global_lights[_selected_light].tipo_luz == FOCO){
+                            vector3 e;
+                            e.x = _selected_object->mptr->M[12];
+                            e.y = _selected_object->mptr->M[13];
+                            e.z = _selected_object->mptr->M[14];
+                            glTranslatef(e.x,e.y,e.z);
+                            glRotatef(10,0,0,-1);
+                            glTranslatef(-e.x,-e.y,-e.z);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else{
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == TRASLADAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede trasladar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glTranslatef(0,0,-1);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    else if(movimiento == ESCALAR){
+                        if(global_lights[_selected_light].tipo_luz == FOCO){
+                            printf("No se puede escalar el sol.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == BOMBILLA){
+                            glScalef(1,1,0.8);
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                        else if(global_lights[_selected_light].tipo_luz == FOCO_OBJETO){
+                            printf("No se pueden transformar los focos.\n");
+                            glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
+                        }
+                    }
+                    // for(int i = 0; i < 16; i++){
+                        // lights[luz].matrix[i] = matriz_nueva[i];
+                    // }
+                    
                 } 
                 printf("REPAG \n");
                 break;
@@ -884,6 +1175,15 @@ void keyboardspecial(int key, int x, int y){
                     }else{
                         printf("primero activa la iluminacion\n");
                     }
+                    // if (glIsEnabled(GL_LIGHT1)){
+                        // glDisable(GL_LIGHT1);
+                        // printf("Luz 1 apagada.(Sol)\n");
+                    // }
+                    // else{
+                        // glEnable(GL_LIGHT1);
+                        // printf("Luz 1 encendida.(Sol)\n");
+                    // }
+                    
                     break;
 
                 case GLUT_KEY_F2:
@@ -1053,7 +1353,19 @@ void keyboardspecial(int key, int x, int y){
 
                 case GLUT_KEY_F12:
                     if(luz == ON) {
-                        _selected_object->shade = (_selected_object->shade + 1) % 2;
+                       // _selected_object->shade = (_selected_object->shade + 1) % 2;
+                       
+                       if(flat_smooth == FLAT)
+                           flat_smooth = SMOOTH;
+                       else
+                           flat_smooth = FLAT;
+                        //flat_smooth = 1 - flat_smooth;
+                        // if (flat_smooth) 
+                            // glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
+                        // else 
+                            // glShadeModel(GL_FLAT);  // basta con vector normal del poligono
+    
+                        printf("Cambio de iluminación (flat-smooth)\n");
                     }
                     break;
 
