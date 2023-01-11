@@ -7,8 +7,9 @@
 #include "definitions.h"
 
 extern object3d *_selected_object;
-extern object3d *cam_object;
+extern object3d *caobjeto_luzect;
 extern camara * _selected_camara;
+extern object3d *_camara_objeto;
 
 extern int luz;
 extern int _selected_light; 
@@ -26,6 +27,17 @@ void identity(GLfloat *m){
             m[i]=1.0f;
         }else{
             m[i]=0.0f;
+        }
+    }
+}
+
+void m_foco(int f){
+    int i;
+    for (i = 0; i < 16; i++){
+        if(f==2) {
+            global_lights[f].objeto_luz[i] = _selected_object->mptr->M[i];
+        }else if(f==3){
+            global_lights[f].objeto_luz[i] = _selected_camara->Minv[i];
         }
     }
 }
@@ -191,3 +203,129 @@ void add_lights(){
 		printf("luz %d preparada, enciendela para usarla\n",_selected_light+1);
 
 }
+
+
+/**
+ * Establece los parámetros del foco asociado a la cámara.
+ * Está pensado para aplicarse en el caso de que las cámaras tengan distintas representaciones
+ */
+void foco_camara(){
+    global_lights[3].position[0] = (_camara_objeto->max.x + _camara_objeto->min.x) / 2;
+    global_lights[3].position[1] = (_camara_objeto->max.y + _camara_objeto->min.y) / 2;
+    global_lights[3].position[2] = (_camara_objeto->max.z + _camara_objeto->min.z) / 2;
+    global_lights[3].position[3] = 1.0f;
+
+    global_lights[3].ambient[0] = 1.5f;
+    global_lights[3].ambient[1] = 1.5f;
+    global_lights[3].ambient[2] = 1.5f;
+    global_lights[3].ambient[3] = 1.0f;
+
+    global_lights[3].diffuse[0] = 1.5f;
+    global_lights[3].diffuse[1] = 1.5f;
+    global_lights[3].diffuse[2] = 1.5f;
+    global_lights[3].diffuse[3] = 1.0f;
+
+    global_lights[3].specular[0] = 1.0f;
+    global_lights[3].specular[1] = 1.0f;
+    global_lights[3].specular[2] = 1.0f;
+    global_lights[3].specular[3] = 1.0f;
+
+    global_lights[3].cut_off = 45.0f;
+
+    global_lights[3].spot_direction[0] = 0;
+    global_lights[3].spot_direction[1] = 0;
+    global_lights[3].spot_direction[2] = -1;
+
+    m_foco(3);
+
+}
+/**
+ * Función para establecer los valores por defecto del foco asociado al objeto
+ */
+void foco_obj(){
+
+    global_lights[2].ambient[0] = 1.5f;
+    global_lights[2].ambient[1] = 1.5f;
+    global_lights[2].ambient[2] = 1.5f;
+    global_lights[2].ambient[3] = 1.0f;
+
+    global_lights[2].diffuse[0] = 1.5f;
+    global_lights[2].diffuse[1] = 1.5f;
+    global_lights[2].diffuse[2] = 1.5f;
+    global_lights[2].diffuse[3] = 1.0f;
+
+    global_lights[2].specular[0] = 1.0f;
+    global_lights[2].specular[1] = 1.0f;
+    global_lights[2].specular[2] = 1.0f;
+    global_lights[2].specular[3] = 1.0f;
+
+    global_lights[2].cut_off = 45.0f;
+
+    global_lights[2].spot_direction[0] = 0.0f;
+    global_lights[2].spot_direction[1] = 0.0f;
+    global_lights[2].spot_direction[2] = 1.0f;
+
+}
+/**
+ * Inicializa los valores por defecto de las luces
+ */
+void inicializar_luces(){
+
+
+    global_lights[0].position[0] = 1.0f;
+    global_lights[0].position[1] = 1.0f;
+    global_lights[0].position[2] = 0.0f;
+    global_lights[0].position[3] = 1.0f;
+    global_lights[0].ambient[0] = 1.2f;
+    global_lights[0].ambient[1] = 1.2f;
+    global_lights[0].ambient[2] = 1.2f;
+    global_lights[0].ambient[3] = 1.0f;
+    global_lights[0].diffuse[0] = 1.0f;
+    global_lights[0].diffuse[1] = 1.0f;
+    global_lights[0].diffuse[2] = 1.0f;
+    global_lights[0].diffuse[3] = 1.0f;
+    global_lights[0].specular[0] = 1.0f;
+    global_lights[0].specular[1] = 1.0f;
+    global_lights[0].specular[2] = 1.0f;
+    global_lights[0].specular[3] = 1.0f;
+
+    identity(global_lights[0].objeto_luz);
+    global_lights[0].tipo_luz = BOMBILLA;
+    global_lights[0].activado = 0;
+
+
+    global_lights[1].position[0] = 0.0f;
+    global_lights[1].position[1] = 1.0f;
+    global_lights[1].position[2] = 0.0f;
+    global_lights[1].position[3] = 0.0f;
+    global_lights[1].ambient[0] = 1.2f;
+    global_lights[1].ambient[1] = 1.2f;
+    global_lights[1].ambient[2] = 1.2f;
+    global_lights[1].ambient[3] = 1.0f;
+    global_lights[1].diffuse[0] = 1.0f;
+    global_lights[1].diffuse[1] = 1.0f;
+    global_lights[1].diffuse[2] = 1.0f;
+    global_lights[1].diffuse[3] = 1.0f;
+    global_lights[1].specular[0] = 1.0f;
+    global_lights[1].specular[1] = 1.0f;
+    global_lights[1].specular[2] = 1.0f;
+    global_lights[1].specular[3] = 1.0f;
+
+    identity(global_lights[1].objeto_luz);
+    global_lights[1].tipo_luz = SOL;
+    global_lights[1].activado = 0;
+
+    global_lights[2].tipo_luz = FOCO_OBJETO;
+    global_lights[3].tipo_luz = FOCO_OBJETO;
+    for(int i=2; i<8; i++) {
+        global_lights[i].activado = 0;
+        if(i>3){
+            global_lights[i].tipo_luz = NONE;
+        }
+    }
+
+    foco_camara();
+    foco_obj();
+
+}
+
