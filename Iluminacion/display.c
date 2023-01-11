@@ -538,9 +538,12 @@ void display(void) {
             }else {
                 /* Select the color, depending on whether the current object is the selected one or not */
                 if (aux_obj == _selected_object) {
-					glColor3f(0.0f, 0.0f, 0.2f); // azul oscurito
+					//glColor3f(0.0f, 0.0f, 0.2f); // azul oscurito
+					glColor3f(KG_COL_SELECTED_R, KG_COL_SELECTED_G, KG_COL_SELECTED_B);
                 } else {
-                    glColor3f(0.0, 0.0, 0.0);	// azul oscurito
+                    // glColor3f(0.0, 0.0, 0.0);	// negro
+					glColor3f(KG_COL_NONSELECTED_R, KG_COL_NONSELECTED_G, KG_COL_NONSELECTED_B);
+
                 }
             }
 			
@@ -555,6 +558,8 @@ void display(void) {
 					glMultMatrixf(aux_obj->mptr->M);
 					for (f = 0; f < aux_obj->num_faces; f++) {	
 						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						glCullFace(GL_FRONT);
+						glEnable(GL_CULL_FACE);
 						glBegin(GL_POLYGON);
 						for (v = 0; v < aux_obj->face_table[f].num_vertices; v++) {
 							v_index = aux_obj->face_table[f].vertex_table[v];
@@ -568,6 +573,7 @@ void display(void) {
 									aux_obj->vertex_table[v_index].coord.z);
 						}
 						glEnd();
+						glDisable(GL_CULL_FACE);
 					}
 				}
 			}else{
@@ -580,7 +586,9 @@ void display(void) {
 						// if(producto_escalar(aux_obj->vertex_table[v_aux].coord, aux_obj->face_table[f].normal,
 							// aux_obj->mptr->M, camara_aux->Minv) > 0.0){
 	
-							glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);					
+							glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
+							glCullFace(GL_FRONT);
+							glEnable(GL_CULL_FACE);							
 							glBegin(GL_POLYGON);
 							
 							if(luz == ON){
@@ -602,6 +610,7 @@ void display(void) {
 										aux_obj->vertex_table[v_index].coord.z);
 							}
 							glEnd();
+							glDisable(GL_CULL_FACE);
 						//}
 				}				
 			}
