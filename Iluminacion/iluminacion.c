@@ -328,4 +328,3 @@ void inicializar_luces(){
     foco_obj();
 
 }
-
