@@ -196,18 +196,13 @@ void keyboard(unsigned char key, int x, int y) {
         /* Intercambiar entre objetos */
         case 9: /* <TAB> */
             if (_selected_object!=NULL){
-               // if(modo == OBJETO || modo == CAMARAOBJETO){
                      _selected_object = _selected_object->next;
                     printf("Siguiente OBJETO... \n");
                     /*The selection is circular, thus if we move out of the list we go back to the first element*/
                     if (_selected_object == 0)
                         _selected_object = _first_object;
                     if(vista == ANALISIS && modo == CAMARA)
-                        centre_camera_to_obj(_selected_object);
-                    // else if  (modo == CAMARAOBJETO){
-                    
-                    // }
-                //}                
+                        centre_camera_to_obj(_selected_object);             
             }
             else {
                 printf("%s: %s\n", fname, KG_MSSG_NOOBJ);
@@ -528,16 +523,16 @@ void keyboard(unsigned char key, int x, int y) {
 
         case 'a':
         case 'A':
-            // if(modo != ILUMINACION &&  luz == ON){
-                // printf("Elemento ha cambiado a iluminacion\n");
-                // modo = ILUMINACION;
-                // if(movimiento == ESCALAR){
-                    // movimiento = TRASLADAR;
-                    // printf("El escalado no existe en iluminacion, se ha cambiado a traslacion \n");
-                // }
-            // }else if(luz == OFF){
-                // printf("Activa la iluminacion primero.\n");
-            // }
+            if(modo != ILUMINACION &&  luz == ON){
+                printf("Elemento ha cambiado a iluminacion\n");
+                modo = ILUMINACION;
+                if(movimiento == ESCALAR){
+                    movimiento = TRASLADAR;
+                    printf("El escalado no existe en iluminacion, se ha cambiado a traslacion \n");
+                }
+            }else if(luz == OFF){
+                printf("Activa la iluminacion primero.\n");
+            }
             printf("No se ha podido activar las tranformaciones a las fuentes de luz. \n ");
             
         break;
@@ -996,7 +991,8 @@ void keyboardspecial(int key, int x, int y){
                         glTranslatef(0,0,-1);
                     else if(movimiento == 2)    // escalar   (2)
                         glScalef(1,1,1.1);
-                }else if(modo == CAMARA){
+                }
+                else if(modo == CAMARA){
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
                             printf("Para hacer zoom -: con el <-> \n");
@@ -1015,9 +1011,7 @@ void keyboardspecial(int key, int x, int y){
                 else if(modo == ILUMINACION){
                     GLfloat matriz_anterior[16];
                     GLfloat matriz_nueva[16];
-                    // for(int i = 0; i < 16; i++){
-                        // matriz_anterior[i] = lights[luz].matrix[i];
-                    // }
+                 
                     glMatrixMode(GL_MODELVIEW);
                     glLoadMatrixf(matriz_anterior);
                     
@@ -1065,27 +1059,29 @@ void keyboardspecial(int key, int x, int y){
                             glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
                         }
                     }
-                    // for(int i = 0; i < 16; i++){
-                        // lights[luz].matrix[i] = matriz_nueva[i];
-                    // }
+                 
                     
                 }                
                 printf("AVPAG \n");
                 break;
                 
             case 104: // REPAG Trasladar -Z; Escalar - Z;  Rotar -Z  (alante)
-                if(modo == OBJETO || modo == CAMARAOBJETO){
+                if((modo == OBJETO || modo == CAMARAOBJETO) && modo!=CAMARA){
                     if(movimiento == 0)         // rotar     (0)
                         glRotatef(10,0,0,-1);
                     else if(movimiento == 1)    // trasladar (1)
                         glTranslatef(0,0,1);
                     else if(movimiento == 2)    // escalar   (2)
                         glScalef(1,1,0.9);
-                }else if(modo == CAMARA){
+                }
+                else if(modo == CAMARA){
+             
                     if(movimiento == TRASLADAR){
                         if(vista == ANALISIS){
                             printf("Para hacer zoom +: con el <+> \n");
-                        }else{
+                        }
+                        else{
+                            printf("kakalabaca \n");
                             glTranslatef(0,0,-1);
                         }
                     }
@@ -1093,16 +1089,20 @@ void keyboardspecial(int key, int x, int y){
                         glRotatef(10,0,0,-1);
                     }
                     else if(movimiento == ESCALAR && vista == VUELO){
+                        printf("ccc \n");
                         _selected_camara->proj.cerca += 0.01;
                         _selected_camara->proj.lejos += 0.01;
                     }
+                    else{
+                        printf("aqui \n");
+                    }
+                        
+                    
                 }
-                else if(modo == ILUMINACION){
+                else if(modo == ILUMINACION && modo!=CAMARA){
+                    printf("entra en iluminacion \n");
                     GLfloat matriz_anterior[16];
                     GLfloat matriz_nueva[16];
-                    // for(int i = 0; i < 16; i++){
-                        // matriz_anterior[i] = lights[luz].matrix[i];
-                    // }
                     glMatrixMode(GL_MODELVIEW);
                     glLoadMatrixf(matriz_anterior);
                     
@@ -1150,15 +1150,12 @@ void keyboardspecial(int key, int x, int y){
                             glGetFloatv(GL_MODELVIEW_MATRIX,matriz_nueva);
                         }
                     }
-                    // for(int i = 0; i < 16; i++){
-                        // lights[luz].matrix[i] = matriz_nueva[i];
-                    // }
-                    
+       
                 } 
                 printf("REPAG \n");
                 break;
 
-                case GLUT_KEY_F1:
+            case GLUT_KEY_F1:
                     if(luz==ON  && _selected_object!=0) {
                         switch (global_lights[0].activado) {
                             case 0:
@@ -1175,15 +1172,7 @@ void keyboardspecial(int key, int x, int y){
                     }else{
                         printf("primero activa la iluminacion\n");
                     }
-                    // if (glIsEnabled(GL_LIGHT1)){
-                        // glDisable(GL_LIGHT1);
-                        // printf("Luz 1 apagada.(Sol)\n");
-                    // }
-                    // else{
-                        // glEnable(GL_LIGHT1);
-                        // printf("Luz 1 encendida.(Sol)\n");
-                    // }
-                    
+           
                     break;
 
                 case GLUT_KEY_F2:
@@ -1353,21 +1342,20 @@ void keyboardspecial(int key, int x, int y){
 
                 case GLUT_KEY_F12:
                     if(luz == ON) {
-                       // _selected_object->shade = (_selected_object->shade + 1) % 2;
-                       
+
                        if(flat_smooth == FLAT)
                            flat_smooth = SMOOTH;
                        else
                            flat_smooth = FLAT;
-                        //flat_smooth = 1 - flat_smooth;
-                        // if (flat_smooth) 
-                            // glShadeModel(GL_SMOOTH);  // hacen falta los vectores normales de cada vertice
-                        // else 
-                            // glShadeModel(GL_FLAT);  // basta con vector normal del poligono
-    
+
                         printf("Cambio de iluminación (flat-smooth)\n");
                     }
                     break;
+                    
+                default:
+                    /*In the default case we just print the code of the key. This is usefull to define new cases*/
+                    printf("%d %c\n", key, key);
+                    printf("special\n");
 
                 
         }
