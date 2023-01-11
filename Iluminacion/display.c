@@ -37,6 +37,7 @@ extern material *mat_camara, *mat_selec, *mat_foco;
 void obtenerMCSR(GLfloat *M, GLfloat *MCSR);
 
 
+
 /**
  * función para calcular el producto escalar entre la cámara y un polígono
  * @param uno punto del polígono
@@ -49,7 +50,7 @@ GLfloat producto_escalar(point3 uno, vector3 normal, GLfloat *mo, GLfloat *mc){
 
     vector3 n, co, cero;
     GLfloat m[16];
-    obtenerMCSRfloat(m, mo);
+    obtenerMCSR(m, mo);
 
     n.x = mc[12] * m[0] + mc[13] * m[4] + mc[14] * m[8] + m[12];
     n.y = mc[12] * m[1] + mc[13] * m[5] + mc[14] * m[9] + m[13];
@@ -422,57 +423,67 @@ void display(void) {
     glLoadIdentity();
     
     /*First, we draw the axes*/
-	draw_axes();
+	// draw_axes();
 	
-	// if(luz == ON){
-		// // las fuentes de luz se representan con shadders flat
-        // glShadeModel(GL_FLAT);
+	if(luz == ON){
+		// las fuentes de luz se representan con shadders flat
+        glShadeModel(GL_FLAT);
+		
+		GLfloat material_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		GLfloat material_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		GLfloat material_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		GLfloat material_shininess[] = { 50.0f };
 
+		// Aplicar el material al objeto
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambient);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_diffuse);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material_shininess);
+		
         // glMaterialfv(GL_FRONT, GL_AMBIENT, mat_foco->amb);
         // glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_foco->dif);
         // glMaterialfv(GL_FRONT, GL_SPECULAR, mat_foco->spec);
         // glMaterialfv(GL_FRONT, GL_SHININESS, mat_foco->shiny);
+		
+		
+		for (int i = 0; i < 8; i++) {
+            if (global_lights[i].tipo_luz != NONE) {
+                glPushMatrix();
+                glMultMatrixf(global_lights[i].objeto_luz);
 
-		// for (int i = 0; i < 8; i++) {
-            // if (global_lights[i].tipo_luz != NONE) {
-                // glPushMatrix();
-                // glMultMatrixf(global_lights[i].objeto_luz);
+                if(global_lights[i].tipo_luz == FOCO){
 
-                // if(global_lights[i].tipo_luz == FOCO){
-
-                    // for (f = 0; f < light_object->num_faces; f++) {
-                        // v_aux = light_object->face_table[f].vertex_table[0];
+                    for (f = 0; f < light_object->num_faces; f++) {
+                        v_aux = light_object->face_table[f].vertex_table[0];
 						
-                        // if (producto_escalar(light_object->vertex_table[v_aux].coord, light_object->face_table[f].normal,
-                                             // global_lights[i].objeto_luz, camara_aux->Minv) > 0.0) {
+                        if (producto_escalar(light_object->vertex_table[v_aux].coord, light_object->face_table[f].normal,
+                                             global_lights[i].objeto_luz, camara_aux->Minv) > 0.0) {
 
-                            // glBegin(GL_POLYGON);
+                            glBegin(GL_POLYGON);
 
-                            // glNormal3d(light_object->face_table[f].normal.x,
-                                       // light_object->face_table[f].normal.y,
-                                       // light_object->face_table[f].normal.z);
+                            glNormal3d(light_object->face_table[f].normal.x,
+                                       light_object->face_table[f].normal.y,
+                                       light_object->face_table[f].normal.z);
 
-                           // for (v = 0; v < light_object->face_table[f].num_vertices; v++) {
-                                // v_index = light_object->face_table[f].vertex_table[v];
+                           for (v = 0; v < light_object->face_table[f].num_vertices; v++) {
+                                v_index = light_object->face_table[f].vertex_table[v];
 
-                                // glVertex3d(light_object->vertex_table[v_index].coord.x,
-                                           // light_object->vertex_table[v_index].coord.y,
-                                           // light_object->vertex_table[v_index].coord.z);
+                                glVertex3d(light_object->vertex_table[v_index].coord.x,
+                                           light_object->vertex_table[v_index].coord.y,
+                                           light_object->vertex_table[v_index].coord.z);
 
-                            // }
-                            // glEnd();
-                        // }
-                    // }
-
-                // }
-
-                // if(global_lights[i].activado == 1) {
-                    // put_light(i);
-                // }
-                // glPopMatrix();
-            // }
-		// }
-	// }
+                            }
+                            glEnd();
+                        }
+                    }
+                }
+                if(global_lights[i].activado == 1) {
+                    put_light(i);
+                }
+                glPopMatrix();
+            }
+		}
+	}
 	
    if(luz == ON) {
 		// modo de sombreado PLANO
@@ -503,8 +514,8 @@ void display(void) {
 			if(luz == ON){
 				if (aux_obj == _selected_object) {
 					// Definir las propiedades del material
-					GLfloat material_ambient[] = { 0.9f, 0.0f, 0.0f, 1.0f };
-					GLfloat material_diffuse[] = { 0.9f, 0.0f, 0.0f, 1.0f };
+					GLfloat material_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+					GLfloat material_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 					GLfloat material_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 					GLfloat material_shininess[] = { 50.0f };
 
@@ -527,9 +538,9 @@ void display(void) {
             }else {
                 /* Select the color, depending on whether the current object is the selected one or not */
                 if (aux_obj == _selected_object) {
-					glColor3f(0.5f, 0.0f, 1.0f); // moradito
+					glColor3f(0.0f, 0.0f, 0.2f); // azul oscurito
                 } else {
-                    glColor3f(0.0, 0.0, 0.2);	// azul oscurito
+                    glColor3f(0.0, 0.0, 0.0);	// azul oscurito
                 }
             }
 			
@@ -566,33 +577,32 @@ void display(void) {
 				for (f = 0; f < aux_obj->num_faces; f++) {
 						v_aux = aux_obj->face_table[f].vertex_table[0];
 						
-						if(producto_escalar(aux_obj->vertex_table[v_aux].coord, aux_obj->face_table[f].normal,
-							aux_obj->mptr->M, camara_aux->Minv) > 0.0){
-								
-					
+						// if(producto_escalar(aux_obj->vertex_table[v_aux].coord, aux_obj->face_table[f].normal,
+							// aux_obj->mptr->M, camara_aux->Minv) > 0.0){
+	
 							glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);					
 							glBegin(GL_POLYGON);
 							
-							// if(luz == ON){
-								// glNormal3d(aux_obj->face_table[f].normal.x,
-									// aux_obj->face_table[f].normal.y,
-									// aux_obj->face_table[f].normal.z);
-							// }
+							if(luz == ON){
+								glNormal3d(aux_obj->face_table[f].normal.x,
+									aux_obj->face_table[f].normal.y,
+									aux_obj->face_table[f].normal.z);
+							}
 							for (v = 0; v < aux_obj->face_table[f].num_vertices; v++) {
 								v_index = aux_obj->face_table[f].vertex_table[v];
 								
-								// if(luz == ON){
-									// glNormal3d(aux_obj->face_table[v_index].normal.x,
-									// aux_obj->face_table[v_index].normal.y,
-									// aux_obj->face_table[v_index].normal.z);
-								// }
+								if(luz == ON){
+									glNormal3d(aux_obj->face_table[v_index].normal.x,
+									aux_obj->face_table[v_index].normal.y,
+									aux_obj->face_table[v_index].normal.z);
+								}
 								
 								glVertex3d(aux_obj->vertex_table[v_index].coord.x,
 										aux_obj->vertex_table[v_index].coord.y,
 										aux_obj->vertex_table[v_index].coord.z);
 							}
 							glEnd();
-						}
+						//}
 				}				
 			}
         aux_obj = aux_obj->next; 
